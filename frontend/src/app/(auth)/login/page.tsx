@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
 import { ArrowRight, Boxes, LockKeyhole } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Input } from "@/components/ui/input";
@@ -50,7 +49,7 @@ export default function LoginPage() {
           <Button type="submit" className="w-full" disabled={isLoading}><LockKeyhole className="h-4 w-4" />{isLoading ? "Signing in…" : "Sign in"}<ArrowRight className="ml-auto h-4 w-4" /></Button>
         </form>
       </section>
-      <p className="mt-4 text-xs text-muted-foreground">Need an account? <Link href="/register" className="text-foreground underline-offset-4 hover:underline">Request staff access</Link></p>
+      <p className="mt-4 text-xs text-muted-foreground">Access is provisioned by your Stockroom administrator.</p>
     </main>
   );
 }

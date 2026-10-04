@@ -66,7 +66,6 @@ export const DEFAULT_NAV_SECTIONS: NavSectionConfig[] = [
         label: "Settings",
         href: "/settings",
         icon: <Settings className="h-4 w-4" />,
-        roles: ["ADMIN"],
       },
     ],
   },

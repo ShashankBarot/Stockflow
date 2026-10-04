@@ -10,6 +10,8 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import com.inventory.management.repository.UserRepository;
 
 @RestController
 @RequestMapping("/movements")
@@ -17,13 +19,14 @@ import org.springframework.security.access.prepost.PreAuthorize;
 public class MovementController {
 
     private final InventoryService inventoryService;
+    private final UserRepository userRepository;
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'STAFF')")
     public ResponseEntity<ApiResponse<?>> createMovement(
-            @Valid @RequestBody StockMovementRequest request) {
-        // TODO: Extract userId from security context
-        return ResponseEntity.ok(inventoryService.createMovement(request, 1L));
+            @Valid @RequestBody StockMovementRequest request, Authentication authentication) {
+        Long userId = userRepository.findByUsername(authentication.getName()).orElseThrow().getId();
+        return ResponseEntity.ok(inventoryService.createMovement(request, userId));
     }
 
     @GetMapping
