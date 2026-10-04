@@ -1,17 +1,56 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { authService } from "@/services/auth.service";
-import type { User, LoginRequest } from "@/types";
+import type { LoginRequest, LoginResponse, RegisterRequest, User } from "@/types";
 
-export function useAuth() {
+interface AuthContextValue {
+  user: User | null;
+  isLoading: boolean;
+  error: string | null;
+  login: (credentials: LoginRequest) => Promise<LoginResponse>;
+  logout: () => Promise<void>;
+  register: (data: RegisterRequest) => Promise<User>;
+  isAuthenticated: boolean;
+}
+
+const AuthContext = createContext<AuthContextValue | null>(null);
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const clearSession = useCallback(() => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    setUser(null);
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    const expire = () => clearSession();
+    window.addEventListener("auth:expired", expire);
+    const restore = async () => {
+      if (!localStorage.getItem("accessToken") && !localStorage.getItem("refreshToken")) {
+        if (active) setIsLoading(false);
+        return;
+      }
+      try {
+        const current = await authService.getMe();
+        if (active) setUser(current);
+      } catch {
+        if (active) clearSession();
+      } finally {
+        if (active) setIsLoading(false);
+      }
+    };
+    void restore();
+    return () => { active = false; window.removeEventListener("auth:expired", expire); };
+  }, [clearSession]);
+
   const login = useCallback(async (credentials: LoginRequest) => {
-    setIsLoading(true);
-    setError(null);
+    setIsLoading(true); setError(null);
     try {
       const response = await authService.login(credentials);
       localStorage.setItem("accessToken", response.accessToken);
@@ -19,48 +58,23 @@ export function useAuth() {
       setUser(response.user);
       return response;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Login failed";
-      setError(message);
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
+      const message = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? "Could not sign in. Check your credentials and try again.";
+      setError(message); throw err;
+    } finally { setIsLoading(false); }
   }, []);
 
   const logout = useCallback(async () => {
-    try {
-      await authService.logout();
-    } catch {
-      // ignore
-    } finally {
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
-      setUser(null);
-    }
-  }, []);
+    const refreshToken = localStorage.getItem("refreshToken") ?? "";
+    try { await authService.logout(refreshToken); } finally { clearSession(); }
+  }, [clearSession]);
 
-  const register = useCallback(async (data: { username: string; email: string; password: string; roleId: number }) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const response = await authService.register(data);
-      return response;
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Registration failed";
-      setError(message);
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const register = useCallback(async (data: RegisterRequest) => authService.register(data), []);
+  const value = useMemo(() => ({ user, isLoading, error, login, logout, register, isAuthenticated: !!user }), [user, isLoading, error, login, logout, register]);
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
 
-  return {
-    user,
-    isLoading,
-    error,
-    login,
-    logout,
-    register,
-    isAuthenticated: !!user,
-  };
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (!context) throw new Error("useAuth must be used within AuthProvider");
+  return context;
 }
