@@ -1,0 +1,71 @@
+version: '3.9'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: stock-management-mysql
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root}
+      MYSQL_DATABASE: ${DB_NAME:-stock_management}
+      MYSQL_USER: ${DB_USER:-inventory_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-root}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - stock-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: stock-management-backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      DB_URL: jdbc:mysql://mysql:3306/stock_management?useSSL=false&allowPublicKeyRetrieval=true
+      DB_USERNAME: ${DB_USER:-inventory_user}
+      DB_PASSWORD: ${DB_PASSWORD:-root}
+      JWT_SECRET: ${JWT_SECRET:-change_this_to_a_very_long_secure_random_string_in_production}
+      JWT_ACCESS_EXPIRATION: ${JWT_ACCESS_EXPIRATION:-900000}
+      JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION:-604800000}
+      SHOW_SQL: ${SHOW_SQL:-false}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      SERVER_PORT: 8080
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - stock-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: stock-management-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8080/api/v1}
+    depends_on:
+      - backend
+    networks:
+      - stock-network
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  stock-network:
+    driver: bridge

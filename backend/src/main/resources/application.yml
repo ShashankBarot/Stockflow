@@ -1,0 +1,50 @@
+spring:
+  application:
+    name: stock-management
+
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/stock_management?useSSL=false&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:root}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      pool-name: StockManagementPool
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 30000
+      max-lifetime: 1200000
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: ${SHOW_SQL:false}
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+        jdbc:
+          time_zone: UTC
+
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    default-property-inclusion: non_null
+
+server:
+  port: ${SERVER_PORT:8080}
+  servlet:
+    context-path: /api/v1
+
+# JWT Configuration
+app:
+  jwt:
+    secret: ${JWT_SECRET:change_this_to_a_very_long_secure_random_string_in_production}
+    access-token-expiration: ${JWT_ACCESS_EXPIRATION:900000}
+    refresh-token-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
+
+# Logging
+logging:
+  level:
+    com.inventory.management: ${LOG_LEVEL:INFO}
+    org.springframework.security: DEBUG
