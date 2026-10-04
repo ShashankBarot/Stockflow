@@ -31,7 +31,7 @@ axiosInstance.interceptors.response.use((response) => response, async (error: Ax
       window.dispatchEvent(new Event("auth:expired"));
       return Promise.reject(error);
     }
-    refreshInFlight = axios.post(`${axiosInstance.defaults.baseURL}/auth/refresh`, { refreshToken })
+    refreshInFlight = axios.post(`${axiosInstance.defaults.baseURL}/auth/refresh`, { refreshToken }, { headers: { "Content-Type": "application/json" }, timeout: axiosInstance.defaults.timeout })
       .then(({ data }) => {
         const tokens = data.data as { accessToken: string; refreshToken: string };
         localStorage.setItem("accessToken", tokens.accessToken);

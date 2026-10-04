@@ -7,7 +7,7 @@ import type {
   PaginatedResponse,
 } from "@/types";
 
-function unwrap<T>(response: { data: { data: T } | T }): T {
+function unwrap<T>(response: { data: unknown }): T {
   const payload = response.data;
   return payload && typeof payload === "object" && "data" in payload ? (payload as { data: T }).data : payload as T;
 }
