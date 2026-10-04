@@ -9,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 @RestController
 @RequestMapping("/inventory")
@@ -30,6 +31,7 @@ public class InventoryController {
     }
 
     @PutMapping("/{id}/threshold")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<ApiResponse<?>> updateInventoryThreshold(
             @PathVariable Long id,
             @RequestBody Object request) {

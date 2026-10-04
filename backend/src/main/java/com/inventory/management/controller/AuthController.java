@@ -2,6 +2,7 @@ package com.inventory.management.controller;
 
 import com.inventory.management.dto.request.LoginRequest;
 import com.inventory.management.dto.request.RegisterRequest;
+import com.inventory.management.dto.request.RefreshTokenRequest;
 import com.inventory.management.dto.response.ApiResponse;
 import com.inventory.management.service.AuthService;
 import jakarta.validation.Valid;
@@ -10,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import org.springframework.security.core.Authentication;
 
 @RestController
 @RequestMapping("/auth")
@@ -29,18 +31,18 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<ApiResponse<?>> refreshToken(@RequestBody Map<String, String> request) {
-        return ResponseEntity.ok(authService.refreshToken(request.get("refreshToken")));
+    public ResponseEntity<ApiResponse<?>> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
+        return ResponseEntity.ok(authService.refreshToken(request.getRefreshToken()));
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse<?>> logout(@RequestHeader(value = "Authorization", required = false) String token) {
-        return ResponseEntity.ok(authService.logout(token));
+    public ResponseEntity<ApiResponse<?>> logout(@RequestHeader(value = "Authorization", required = false) String token,
+                                                  @RequestBody(required = false) RefreshTokenRequest request) {
+        return ResponseEntity.ok(authService.logout(token, request == null ? null : request.getRefreshToken()));
     }
 
     @GetMapping("/me")
-    public ResponseEntity<ApiResponse<?>> getMe() {
-        // TODO: Implement
-        return ResponseEntity.ok(ApiResponse.ok("Not implemented", null));
+    public ResponseEntity<ApiResponse<?>> getMe(Authentication authentication) {
+        return ResponseEntity.ok(authService.currentUser(authentication));
     }
 }

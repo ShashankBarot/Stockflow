@@ -3,7 +3,7 @@ export interface User {
   id: number;
   username: string;
   email: string;
-  role: Role;
+  role: string | Role;
   createdAt: string;
 }
 
@@ -22,7 +22,12 @@ export interface RegisterRequest {
   username: string;
   email: string;
   password: string;
-  roleId: number;
+}
+
+export interface ApiEnvelope<T> {
+  success: boolean;
+  message: string;
+  data: T;
 }
 
 // ===================== Role Types =====================
