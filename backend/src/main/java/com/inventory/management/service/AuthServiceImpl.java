@@ -18,6 +18,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.authentication.BadCredentialsException;
 import java.util.Locale;
 
 @Service
@@ -33,8 +34,13 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public ApiResponse<?> login(LoginRequest request) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
+        Authentication authentication;
+        try {
+            authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
+        } catch (RuntimeException exception) {
+            throw new BadCredentialsException("Invalid credentials");
+        }
         User user = users.findByUsername(authentication.getName()).orElseThrow();
         return ApiResponse.ok("Signed in", issueTokens(user));
     }
@@ -42,11 +48,13 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public ApiResponse<?> register(RegisterRequest request) {
-        if (users.existsByUsername(request.getUsername())) throw new IllegalArgumentException("Username is already in use");
-        if (users.existsByEmail(request.getEmail())) throw new IllegalArgumentException("Email is already in use");
+        String username = request.getUsername().trim();
+        String email = request.getEmail().trim().toLowerCase(Locale.ROOT);
+        if (users.existsByUsername(username)) throw new IllegalArgumentException("Username is already in use");
+        if (users.existsByEmail(email)) throw new IllegalArgumentException("Email is already in use");
         Role role = roles.findByName("STAFF").orElseThrow(() -> new IllegalStateException("Default STAFF role is missing"));
-        User user = users.save(User.builder().username(request.getUsername().trim())
-                .email(request.getEmail().trim().toLowerCase(Locale.ROOT))
+        User user = users.save(User.builder().username(username)
+                .email(email)
                 .passwordHash(passwordEncoder.encode(request.getPassword())).role(role).build());
         return ApiResponse.ok("Account created", UserResponse.from(user));
     }

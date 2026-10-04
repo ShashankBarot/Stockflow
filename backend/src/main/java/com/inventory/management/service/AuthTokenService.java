@@ -38,6 +38,7 @@ public class AuthTokenService {
                 .orElseThrow(() -> new IllegalArgumentException("Invalid refresh token"));
         if (stored.getExpiresAt().isBefore(Instant.now()) || !jwt.validateToken(token)) {
             stored.setRevokedAt(Instant.now());
+            refreshTokens.save(stored);
             throw new IllegalArgumentException("Expired refresh token");
         }
         stored.setRevokedAt(Instant.now());
