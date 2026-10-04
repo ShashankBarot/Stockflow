@@ -13,7 +13,7 @@ export function AppShell({ children }: AppShellProps) {
   const [selectedWarehouseId, setSelectedWarehouseId] = React.useState<string | undefined>();
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground antialiased selection:bg-foreground selection:text-background">
+    <div className="flex min-h-[100dvh] bg-background text-foreground antialiased">
       {/* Desktop Persistent Sidebar */}
       <AppSidebar />
 
@@ -25,7 +25,7 @@ export function AppShell({ children }: AppShellProps) {
           selectedWarehouseId={selectedWarehouseId}
           onSelectWarehouse={setSelectedWarehouseId}
         />
-        <main className="flex-1 overflow-y-auto px-4 py-6 md:px-8">
+        <main className="min-w-0 flex-1 overflow-y-auto px-4 py-5 md:px-6 lg:px-7">
           {children}
         </main>
       </div>

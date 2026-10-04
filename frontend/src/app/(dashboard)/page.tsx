@@ -1,14 +1,13 @@
 "use client";
 
 import * as React from "react";
-import { Plus, ArrowDownToLine, RefreshCw } from "lucide-react";
+import { Plus, RefreshCw } from "lucide-react";
 import { MetricsStrip } from "@/components/dashboard/metrics-strip";
 import { InventoryChart } from "@/components/dashboard/inventory-chart";
 import { InventoryTable } from "@/components/dashboard/inventory-table";
 import { InsightPanel } from "@/components/dashboard/insight-panel";
 import { AdjustStockDrawer } from "@/components/inventory/adjust-stock-drawer";
 import { CreateProductModal } from "@/components/inventory/create-product-modal";
-import { LiveToggle } from "@/components/ui/live-toggle";
 import { DateRangePicker, DatePreset } from "@/components/ui/date-range-picker";
 import { BUTTON, BUTTON_PRIMARY } from "@/components/ui/control-classes";
 import { useProducts, useInventory } from "@/hooks/useInventory";
@@ -131,31 +130,28 @@ export default function OverviewDashboardPage() {
   }, [products]);
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto max-w-[1600px] space-y-5">
       {/* Top Header Section */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-border/40 pb-4">
+      <div className="flex flex-col gap-3 border-b border-white/[0.07] pb-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="flex items-center gap-2.5">
-            <h1 className="text-xl font-bold tracking-tight text-foreground md:text-2xl">
+            <h1 className="text-[27px] font-medium tracking-tight text-foreground md:text-[30px]">
               Overview
             </h1>
-            <span className="rounded bg-foreground/[0.05] px-2 py-0.5 font-mono text-[10px] text-muted-foreground border border-border/50">
-              TERMINAL v2.4
-            </span>
           </div>
           <p className="mt-1 text-xs text-muted-foreground">
-            Inventory performance, valuation velocity, and warehouse health metrics.
+            Inventory performance, valuation and warehouse health.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <LiveToggle enabled={isLive} onToggle={setIsLive} />
+        <div className="flex flex-wrap items-center gap-2">
           <DateRangePicker value={dateRange} onChange={setDateRange} />
           <button
             type="button"
             onClick={() => refetch()}
             className={BUTTON}
-            title="Refresh Ledger"
+            title="Refresh inventory"
+            aria-label="Refresh inventory"
           >
             <RefreshCw className="h-3.5 w-3.5" />
           </button>
@@ -165,7 +161,7 @@ export default function OverviewDashboardPage() {
             className={BUTTON_PRIMARY}
           >
             <Plus className="h-3.5 w-3.5" />
-            <span>New Asset</span>
+            <span>Add product</span>
           </button>
         </div>
       </div>
@@ -175,7 +171,7 @@ export default function OverviewDashboardPage() {
         metrics={[
           {
             id: "total_val",
-            label: "Total Valuation",
+          label: "Total inventory value",
             value: totalValuation > 0 ? totalValuation : 128450,
             format: "currency",
             change: 4.2,
@@ -184,7 +180,7 @@ export default function OverviewDashboardPage() {
           },
           {
             id: "units_stock",
-            label: "Total Units on Hand",
+          label: "Total units",
             value: totalUnits > 0 ? totalUnits : 4821,
             format: "integer",
             change: 2.1,
@@ -193,7 +189,7 @@ export default function OverviewDashboardPage() {
           },
           {
             id: "low_stock",
-            label: "Low Stock Warnings",
+          label: "Low stock",
             value: lowStockCount,
             format: "integer",
             change: -1,
@@ -202,7 +198,7 @@ export default function OverviewDashboardPage() {
           },
           {
             id: "out_of_stock",
-            label: "Depleted Items",
+          label: "Out of stock",
             value: depletedCount,
             format: "integer",
             change: 0,
@@ -216,8 +212,8 @@ export default function OverviewDashboardPage() {
       <InventoryChart />
 
       {/* Main Workspace Split: Dense Inventory Table (2/3) + Operational Insight Panel (1/3) */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_270px]">
+        <div className="min-w-0">
           <InventoryTable
             products={products}
             isLoading={isLoading}
@@ -226,9 +222,9 @@ export default function OverviewDashboardPage() {
           />
         </div>
 
-        <div className="lg:col-span-1">
+        <aside className="min-w-0">
           <InsightPanel />
-        </div>
+        </aside>
       </div>
 
       {/* Modals & Drawers */}

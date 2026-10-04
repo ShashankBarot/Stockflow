@@ -55,19 +55,19 @@ export function TopBar({
   const activeWarehouse = warehouses.find((w) => String(w.id) === selectedWarehouseId);
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 w-full items-center justify-between border-b border-border/40 bg-background/80 px-4 md:px-6 backdrop-blur-md">
+    <header className="sticky top-0 z-30 flex h-14 w-full items-center justify-between border-b border-white/[0.055] bg-background/90 px-4 backdrop-blur-md md:px-6">
       {/* Left: Global Search Pill */}
       <div className="flex items-center gap-3">
-        <div className="relative w-64 md:w-80">
+        <div className="relative w-56 md:w-64">
           <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground/60" />
           <input
             type="text"
             value={searchValue}
             onChange={(e) => onSearchChange?.(e.target.value)}
-            placeholder="Search SKU, product, warehouse..."
+            placeholder="Search products, SKUs, warehouses..."
             className={`${FIELD} w-full pl-8 text-xs font-normal`}
           />
-          <kbd className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 rounded border border-border/60 bg-foreground/[0.04] px-1.5 py-0.5 text-[9px] font-mono font-medium text-muted-foreground">
+          <kbd className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 rounded border border-white/[0.08] bg-foreground/[0.035] px-1.5 py-0.5 text-[9px] font-mono font-medium text-muted-foreground">
             ⌘K
           </kbd>
         </div>
@@ -132,19 +132,6 @@ export function TopBar({
         </div>
 
         {/* Theme Toggle */}
-        <button
-          type="button"
-          onClick={toggleTheme}
-          className={ICON_BUTTON}
-          aria-label="Toggle theme"
-        >
-          {theme === "dark" ? (
-            <Sun className="h-3.5 w-3.5" />
-          ) : (
-            <Moon className="h-3.5 w-3.5" />
-          )}
-        </button>
-
         {/* Notifications */}
         <button
           type="button"
@@ -156,13 +143,13 @@ export function TopBar({
         </button>
 
         {/* Operator Badge */}
-        <div className="ml-2 flex items-center gap-2 border-l border-border/40 pl-3">
-          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-foreground/10 border border-border/50 text-xs font-semibold text-foreground">
+        <div className="ml-1 flex items-center gap-2 border-l border-white/[0.07] pl-3">
+          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-300 text-[10px] font-semibold text-zinc-900">
             OP
           </div>
           <div className="hidden sm:block text-left">
-            <p className="text-xs font-medium leading-none text-foreground">Ops Terminal</p>
-            <p className="text-[10px] text-muted-foreground leading-tight">Admin Level 1</p>
+            <p className="text-xs font-medium leading-none text-foreground">Operations</p>
+            <p className="text-[10px] text-muted-foreground leading-tight">Administrator</p>
           </div>
         </div>
       </div>

@@ -64,7 +64,7 @@ const DEFAULT_METRICS: MetricItem[] = [
 
 export function MetricsStrip({ metrics = DEFAULT_METRICS }: MetricsStripProps) {
   return (
-    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+    <section aria-label="Inventory metrics" className="grid grid-cols-2 border-y border-white/[0.07] py-3 lg:grid-cols-4">
       {metrics.map((m) => {
         const isWarning = m.sentiment === "warning";
         const isDanger = m.sentiment === "danger";
@@ -72,20 +72,19 @@ export function MetricsStrip({ metrics = DEFAULT_METRICS }: MetricsStripProps) {
         return (
           <div
             key={m.id}
-            className="flex flex-col justify-between rounded-lg border border-border/50 bg-card/60 p-3.5 backdrop-blur-xs transition-colors hover:border-border/80"
+            className="flex min-w-0 flex-col justify-between px-3 py-1 first:pl-0 lg:border-r lg:border-white/[0.07] lg:px-4 lg:first:pl-0 lg:last:border-0"
           >
             <div className="flex items-center justify-between text-muted-foreground">
-              <span className="text-xs font-medium text-muted-foreground/80">{m.label}</span>
-              <span className="text-muted-foreground/60">{m.icon}</span>
+              <span className="text-[11px] font-medium text-muted-foreground">{m.label}</span>
             </div>
 
-            <div className="mt-2.5 flex items-baseline justify-between">
+            <div className="mt-1.5 flex flex-wrap items-baseline justify-between gap-x-2">
               <span
-                className={`text-2xl font-semibold tracking-tight ${
+                className={`text-[25px] font-medium tracking-tight tabular-nums ${
                   isDanger
-                    ? "text-rose-400"
+                    ? "text-[var(--negative)]"
                     : isWarning
-                    ? "text-amber-400"
+                    ? "text-[var(--warning)]"
                     : "text-foreground"
                 }`}
               >
@@ -97,9 +96,9 @@ export function MetricsStrip({ metrics = DEFAULT_METRICS }: MetricsStripProps) {
                   <span
                     className={
                       m.change > 0 && !isDanger && !isWarning
-                        ? "text-emerald-400"
+                        ? "text-[var(--positive)]"
                         : isDanger || m.change < 0
-                        ? "text-rose-400"
+                        ? "text-[var(--negative)]"
                         : "text-muted-foreground"
                     }
                   >
@@ -115,6 +114,6 @@ export function MetricsStrip({ metrics = DEFAULT_METRICS }: MetricsStripProps) {
           </div>
         );
       })}
-    </div>
+    </section>
   );
 }

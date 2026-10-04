@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { SlidersHorizontal, ArrowUpDown, ExternalLink, Plus } from "lucide-react";
+import { ArrowUpDown, ExternalLink, Plus, Search } from "lucide-react";
 import { LiveFigure } from "@/components/ui/live-figure";
 import { SegmentedControl, SegmentOption } from "@/components/ui/segmented-control";
 import { RowAction } from "@/components/ui/row-action";
@@ -84,17 +84,20 @@ export function InventoryTable({
   };
 
   return (
-    <div className="flex flex-col rounded-lg border border-border/50 bg-card/60 backdrop-blur-xs">
+    <section aria-label="Inventory records" className="flex min-w-0 flex-col">
       {/* Controls Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/40 p-4">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.07] pb-3 pt-1">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground/60" />
           <input
             type="text"
-            placeholder="Filter table rows..."
+            placeholder="Search inventory..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className={`${FIELD} w-48 lg:w-64`}
+            className={`${FIELD} w-full pl-8 sm:w-48 lg:w-56`}
           />
+          </div>
           <SegmentedControl
             options={STATUS_FILTERS}
             value={statusFilter}
@@ -119,16 +122,16 @@ export function InventoryTable({
 
       {/* Dense Continuous Data Surface */}
       <div className="overflow-x-auto">
-        <table className="w-full text-left text-xs border-collapse">
+        <table className="w-full min-w-[760px] border-collapse text-left text-xs">
           <thead>
-            <tr className="border-b border-border/40 bg-foreground/[0.02] text-muted-foreground">
+            <tr className="border-b border-white/[0.075] text-[10px] uppercase tracking-wide text-muted-foreground">
               <th className="py-2.5 pl-4 pr-3 font-medium">
                 <button
                   type="button"
                   onClick={() => toggleSort("name")}
-                  className="flex items-center gap-1.5 hover:text-foreground"
+                    className="flex items-center gap-1.5 transition-colors hover:text-foreground"
                 >
-                  <span>PRODUCT & SKU</span>
+                  <span>Product</span>
                   <ArrowUpDown className="h-3 w-3" />
                 </button>
               </th>
@@ -139,7 +142,7 @@ export function InventoryTable({
                   onClick={() => toggleSort("stock")}
                   className="ml-auto flex items-center gap-1.5 hover:text-foreground"
                 >
-                  <span>ON HAND</span>
+                  <span>On hand</span>
                   <ArrowUpDown className="h-3 w-3" />
                 </button>
               </th>
@@ -151,7 +154,7 @@ export function InventoryTable({
                   onClick={() => toggleSort("price")}
                   className="ml-auto flex items-center gap-1.5 hover:text-foreground"
                 >
-                  <span>UNIT PRICE</span>
+                  <span>Unit price</span>
                   <ArrowUpDown className="h-3 w-3" />
                 </button>
               </th>
@@ -159,7 +162,7 @@ export function InventoryTable({
               <th className="py-2.5 pl-3 pr-4 text-right font-medium">ACTIONS</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-border/30 font-sans">
+          <tbody className="divide-y divide-white/[0.045] font-sans">
             {isLoading ? (
               <tr>
                 <td colSpan={8} className="py-12 text-center text-muted-foreground">
@@ -185,14 +188,14 @@ export function InventoryTable({
                 return (
                   <tr
                     key={p.id}
-                    className="group transition-colors hover:bg-foreground/[0.03]"
+                    className="group transition-colors hover:bg-white/[0.025]"
                   >
                     {/* Item & SKU */}
                     <td className="py-2.5 pl-4 pr-3">
                       <div className="flex flex-col">
                         <Link
                           href={`/inventory/${p.id}`}
-                          className="font-medium text-foreground hover:underline"
+                          className="font-medium text-foreground/90 transition-colors hover:text-foreground"
                         >
                           {p.name}
                         </Link>
@@ -212,9 +215,9 @@ export function InventoryTable({
                       <span
                         className={
                           isOut
-                            ? "text-rose-400 font-bold"
+                            ? "font-semibold text-[var(--negative)]"
                             : isLow
-                            ? "text-amber-400 font-semibold"
+                            ? "font-medium text-[var(--warning)]"
                             : "text-foreground"
                         }
                       >
@@ -230,18 +233,18 @@ export function InventoryTable({
                     {/* Restrained status tag */}
                     <td className="px-3 py-2.5">
                       {isOut ? (
-                        <span className="inline-flex items-center gap-1 rounded bg-rose-500/10 px-1.5 py-0.5 text-[10px] font-medium text-rose-400 border border-rose-500/20">
-                          <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
+                        <span className="inline-flex items-center gap-1 text-[10px] font-medium text-[var(--negative)]">
+                          <span className="h-1.5 w-1.5 rounded-full bg-[var(--negative)]" />
                           Stockout
                         </span>
                       ) : isLow ? (
-                        <span className="inline-flex items-center gap-1 rounded bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium text-amber-400 border border-amber-500/20">
-                          <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                        <span className="inline-flex items-center gap-1 text-[10px] font-medium text-[var(--warning)]">
+                          <span className="h-1.5 w-1.5 rounded-full bg-[var(--warning)]" />
                           Low Stock
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 rounded bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-medium text-emerald-400 border border-emerald-500/20">
-                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                        <span className="inline-flex items-center gap-1 text-[10px] font-medium text-[var(--positive)]">
+                          <span className="h-1.5 w-1.5 rounded-full bg-[var(--positive)]" />
                           Optimal
                         </span>
                       )}
@@ -264,7 +267,7 @@ export function InventoryTable({
                           <button
                             type="button"
                             onClick={() => onAdjustStock(p)}
-                            className="rounded px-2 py-1 text-[11px] font-medium text-foreground border border-border/50 bg-foreground/[0.04] hover:bg-foreground/[0.08]"
+                            className="rounded px-2 py-1 text-[11px] font-medium text-muted-foreground opacity-0 transition-all hover:bg-white/[0.06] hover:text-foreground focus-visible:opacity-100 group-hover:opacity-100"
                           >
                             Adjust
                           </button>
@@ -295,10 +298,10 @@ export function InventoryTable({
       </div>
 
       {/* Table Footer Summary */}
-      <div className="flex items-center justify-between border-t border-border/40 px-4 py-2 text-[11px] font-mono text-muted-foreground">
+      <div className="flex items-center justify-between border-t border-white/[0.07] px-1 py-2 text-[10px] font-mono text-muted-foreground">
         <span>Showing {filteredProducts.length} entries</span>
         <span>Operational Ledger Verified</span>
       </div>
-    </div>
+    </section>
   );
 }

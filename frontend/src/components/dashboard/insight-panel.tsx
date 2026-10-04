@@ -19,46 +19,46 @@ export function InsightPanel() {
   ];
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 xl:sticky xl:top-[4.5rem]">
       {/* Stock Health Radar */}
-      <div className="rounded-lg border border-border/50 bg-card/60 p-4 backdrop-blur-xs">
+      <section className="border-b border-white/[0.07] pb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
             <Activity className="h-3.5 w-3.5 text-muted-foreground" />
             <span className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-              Operational Health
+            Operational health
             </span>
           </div>
-          <span className="font-mono text-xs font-semibold text-emerald-400">92.4%</span>
+          <span className="font-mono text-sm font-medium text-[var(--positive)]">92.4%</span>
         </div>
 
         {/* Segmented bar */}
         <div className="mt-3 flex h-2 w-full overflow-hidden rounded-full bg-foreground/[0.05]">
-          <div className="bg-emerald-500 transition-all" style={{ width: "84%" }} />
-          <div className="bg-amber-500 transition-all" style={{ width: "12%" }} />
-          <div className="bg-rose-500 transition-all" style={{ width: "4%" }} />
+          <div className="bg-[var(--positive)] transition-all" style={{ width: "84%" }} />
+          <div className="bg-[var(--warning)] transition-all" style={{ width: "12%" }} />
+          <div className="bg-[var(--negative)] transition-all" style={{ width: "4%" }} />
         </div>
 
         <div className="mt-2.5 flex justify-between text-[10px] font-mono text-muted-foreground">
           <span className="flex items-center gap-1">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Optimal (84%)
+            <span className="h-1.5 w-1.5 rounded-full bg-[var(--positive)]" /> Optimal (84%)
           </span>
           <span className="flex items-center gap-1">
-            <span className="h-1.5 w-1.5 rounded-full bg-amber-500" /> Low (12%)
+            <span className="h-1.5 w-1.5 rounded-full bg-[var(--warning)]" /> Low (12%)
           </span>
           <span className="flex items-center gap-1">
-            <span className="h-1.5 w-1.5 rounded-full bg-rose-500" /> Critical (4%)
+            <span className="h-1.5 w-1.5 rounded-full bg-[var(--negative)]" /> Critical (4%)
           </span>
         </div>
-      </div>
+      </section>
 
       {/* Facility Allocation */}
-      <div className="rounded-lg border border-border/50 bg-card/60 p-4 backdrop-blur-xs">
+      <section className="border-b border-white/[0.07] pb-4">
         <div className="flex items-center justify-between pb-2">
           <div className="flex items-center gap-1.5">
             <Warehouse className="h-3.5 w-3.5 text-muted-foreground" />
             <span className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-              Facility Utilization
+              Warehouse utilization
             </span>
           </div>
           <span className="text-[11px] font-mono text-muted-foreground/70">3 Active Sites</span>
@@ -75,9 +75,9 @@ export function InsightPanel() {
                 <div
                   className={`h-full rounded-full transition-all ${
                     wh.usage > 90
-                      ? "bg-rose-500"
+                      ? "bg-[var(--negative)]"
                       : wh.usage > 75
-                      ? "bg-amber-500"
+                      ? "bg-[var(--warning)]"
                       : "bg-foreground/70"
                   }`}
                   style={{ width: `${wh.usage}%` }}
@@ -90,15 +90,15 @@ export function InsightPanel() {
             </div>
           ))}
         </div>
-      </div>
+      </section>
 
       {/* High Velocity Movers */}
-      <div className="rounded-lg border border-border/50 bg-card/60 p-4 backdrop-blur-xs">
+      <section className="pb-2">
         <div className="flex items-center justify-between pb-2">
           <div className="flex items-center gap-1.5">
             <Zap className="h-3.5 w-3.5 text-muted-foreground" />
             <span className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-              Velocity Feed
+              Today's movement
             </span>
           </div>
           <span className="text-[10px] font-mono text-muted-foreground/70">Last 24h</span>
@@ -123,14 +123,14 @@ export function InsightPanel() {
                 ) : (
                   <ArrowDownRight className="h-3.5 w-3.5 text-rose-400" />
                 )}
-                <span className={m.dir === "in" ? "text-emerald-400" : "text-rose-400"}>
+                  <span className={m.dir === "in" ? "text-[var(--positive)]" : "text-[var(--negative)]"}>
                   {m.delta}
                 </span>
               </div>
             </div>
           ))}
         </div>
-      </div>
+      </section>
     </div>
   );
 }

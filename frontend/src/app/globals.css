@@ -1,26 +1,69 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: dark;
+  --background: #090a0b;
+  --foreground: #e8eaed;
+  --card: #0e1012;
+  --popover: #141618;
+  --border: #ffffff;
+  --input: #ffffff;
+  --muted: #141719;
+  --muted-foreground: #899097;
+  --primary: #e8eaed;
+  --primary-foreground: #090a0b;
+  --secondary: #191c1f;
+  --secondary-foreground: #e8eaed;
+  --accent: #1d2124;
+  --accent-foreground: #f1f3f4;
+  --destructive: #e36b6b;
+  --ring: #737b82;
+  --chart-1: #55c9a5;
+  --chart-2: #e6b969;
+  --chart-3: #7fa6e8;
+  --chart-up: #55c9a5;
+  --chart-down: #e37474;
+  --surface: #0e1012;
+  --surface-raised: #141719;
+  --control: #171a1d;
+  --field: #101214;
+  --positive: #55c9a5;
+  --negative: #e37474;
+  --warning: #e6b969;
+  --info: #7fa6e8;
+  --border-subtle: rgb(255 255 255 / 7%);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-popover: var(--popover);
+  --color-border: color-mix(in srgb, var(--border) 9%, transparent);
+  --color-input: color-mix(in srgb, var(--input) 12%, transparent);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-ring: var(--ring);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+* { border-color: var(--border-subtle); }
+html, body { min-height: 100%; }
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+::selection { background: rgb(85 201 165 / 25%); color: var(--foreground); }
+*:focus-visible { outline: 2px solid color-mix(in srgb, var(--info) 75%, transparent); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }

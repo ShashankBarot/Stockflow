@@ -77,23 +77,23 @@ export function InventoryChart() {
   const areaD = `${pathD} L ${width - paddingX} ${height} L ${paddingX} ${height} Z`;
 
   return (
-    <div className="flex flex-col rounded-lg border border-border/50 bg-card/60 p-4 backdrop-blur-xs">
+    <section aria-label="Inventory valuation" className="flex flex-col border-b border-white/[0.07] pb-3">
       {/* Header with live readout and timeframe controls */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/40 pb-3">
         <div>
           <div className="flex items-center gap-2">
             <span className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-              Valuation Trajectory
+              Inventory valuation
             </span>
             <span className="rounded bg-foreground/[0.05] px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
               {activePoint.date}
             </span>
           </div>
           <div className="mt-1 flex items-baseline gap-2">
-            <span className="text-2xl font-bold tracking-tight text-foreground">
+            <span className="text-[23px] font-medium tracking-tight tabular-nums text-foreground">
               <LiveFigure value={activePoint.value} format="currency" />
             </span>
-            <span className="text-xs font-mono text-emerald-400">
+            <span className="text-xs font-mono text-[var(--positive)]">
               +{(((activePoint.value - points[0].value) / points[0].value) * 100).toFixed(1)}%
             </span>
           </div>
@@ -212,6 +212,6 @@ export function InventoryChart() {
           ))}
         </div>
       </div>
-    </div>
+    </section>
   );
 }
