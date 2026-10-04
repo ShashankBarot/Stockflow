@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { ProtectedRoute } from "@/components/auth/protected-route";
 import { Moon, Sun, Shield, Sliders, Database, Save, Check } from "lucide-react";
 import { BUTTON, BUTTON_PRIMARY, FIELD } from "@/components/ui/control-classes";
 import { SegmentedControl } from "@/components/ui/segmented-control";
@@ -33,6 +34,7 @@ export default function SettingsPage() {
   };
 
   return (
+    <ProtectedRoute roles={["ADMIN"]}>
     <div className="space-y-6 max-w-3xl">
       <div className="border-b border-border/40 pb-4">
         <h1 className="text-xl font-bold tracking-tight text-foreground md:text-2xl">
@@ -158,5 +160,6 @@ export default function SettingsPage() {
         </div>
       </form>
     </div>
+    </ProtectedRoute>
   );
 }

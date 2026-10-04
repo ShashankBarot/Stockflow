@@ -32,11 +32,14 @@ public class SecurityConfig {
                                                     AccessDeniedHandler accessDeniedHandler) throws Exception {
         http
             .csrf(AbstractHttpConfigurer::disable)
+            .httpBasic(AbstractHttpConfigurer::disable)
+            .formLogin(AbstractHttpConfigurer::disable)
+            .logout(AbstractHttpConfigurer::disable)
             .cors(cors -> {})
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .exceptionHandling(errors -> errors.authenticationEntryPoint(authenticationEntryPoint).accessDeniedHandler(accessDeniedHandler))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/auth/login", "/auth/register", "/auth/refresh").permitAll()
+            .requestMatchers("/auth/login", "/auth/register", "/auth/refresh").permitAll()
             .requestMatchers("/auth/logout", "/auth/me").authenticated()
                 .requestMatchers(org.springframework.http.HttpMethod.POST, "/products/**", "/warehouses/**")
                     .hasAnyRole("ADMIN", "MANAGER")
