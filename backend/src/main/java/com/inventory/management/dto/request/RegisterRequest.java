@@ -2,7 +2,6 @@ package com.inventory.management.dto.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -27,6 +26,4 @@ public class RegisterRequest {
     @Size(min = 6, max = 100)
     private String password;
 
-    @NotNull(message = "Role ID is required")
-    private Long roleId;
 }

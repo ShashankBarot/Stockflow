@@ -33,6 +33,7 @@ public class JwtTokenProvider {
                 .subject(username)
                 .claim("userId", userId)
                 .claim("role", role)
+                .claim("type", "access")
                 .issuedAt(now)
                 .expiration(expiryDate)
                 .signWith(getSigningKey())
@@ -55,6 +56,22 @@ public class JwtTokenProvider {
 
     public String getUsernameFromToken(String token) {
         return parseClaims(token).getPayload().getSubject();
+    }
+
+    public boolean isRefreshToken(String token) {
+        try {
+            return "refresh".equals(parseClaims(token).getPayload().get("type", String.class));
+        } catch (JwtException | IllegalArgumentException e) {
+            return false;
+        }
+    }
+
+    public boolean isAccessToken(String token) {
+        try {
+            return "access".equals(parseClaims(token).getPayload().get("type", String.class));
+        } catch (JwtException | IllegalArgumentException e) {
+            return false;
+        }
     }
 
     public boolean validateToken(String token) {
