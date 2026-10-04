@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
 import {
   LayoutDashboard,
   Boxes,
@@ -19,6 +20,7 @@ export interface NavItemConfig {
   href: string;
   icon?: React.ReactNode;
   badge?: number;
+  roles?: string[];
 }
 
 export interface NavSectionConfig {
@@ -60,6 +62,12 @@ export const DEFAULT_NAV_SECTIONS: NavSectionConfig[] = [
         href: "/reports",
         icon: <BarChart3 className="h-4 w-4" />,
       },
+      {
+        label: "Settings",
+        href: "/settings",
+        icon: <Settings className="h-4 w-4" />,
+        roles: ["ADMIN"],
+      },
     ],
   },
 ];
@@ -70,6 +78,9 @@ interface NavItemProps {
 
 function NavItem({ item }: NavItemProps) {
   const pathname = usePathname();
+  const { user } = useAuth();
+  const role = typeof user?.role === "string" ? user.role : user?.role.name;
+  if (item.roles && (!role || !item.roles.includes(role))) return null;
   const isActive =
     item.href === "/"
       ? pathname === "/"
@@ -166,13 +177,6 @@ export function AppSidebar({
       <div className="mt-auto p-3">
         {footer || (
           <div className="space-y-1">
-            <Link
-              href="/settings"
-              className="flex items-center gap-2.5 rounded-full px-2.5 py-2 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-foreground/[0.04] hover:text-foreground"
-            >
-              <Settings className="h-4 w-4 text-muted-foreground/70" />
-              <span>Settings</span>
-            </Link>
             <div className="mt-2 flex items-center justify-between rounded-md px-2.5 py-1.5">
               <div className="flex items-center gap-1.5">
                 <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />

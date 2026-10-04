@@ -1,15 +1,18 @@
 "use client";
 
 import * as React from "react";
-import { Search, Bell, Sun, Moon, Building2, ChevronDown, Check } from "lucide-react";
+import { Search, Bell, Building2, ChevronDown, Check, LogOut } from "lucide-react";
 import { ICON_BUTTON, FIELD } from "@/components/ui/control-classes";
 import { useWarehouses } from "@/hooks/useWarehouses";
+import { useAuth } from "@/hooks/useAuth";
+import { useRouter } from "next/navigation";
 
 interface TopBarProps {
   onSearchChange?: (term: string) => void;
   searchValue?: string;
   selectedWarehouseId?: string;
   onSelectWarehouse?: (id: string | undefined) => void;
+  onLogout?: () => Promise<void>;
 }
 
 export function TopBar({
@@ -17,7 +20,10 @@ export function TopBar({
   searchValue = "",
   selectedWarehouseId,
   onSelectWarehouse,
+  onLogout,
 }: TopBarProps) {
+  const { user } = useAuth();
+  const router = useRouter();
   const [theme, setTheme] = React.useState<"dark" | "light">("dark");
   const [whOpen, setWhOpen] = React.useState(false);
   const whRef = React.useRef<HTMLDivElement | null>(null);
@@ -144,13 +150,14 @@ export function TopBar({
 
         {/* Operator Badge */}
         <div className="ml-1 flex items-center gap-2 border-l border-white/[0.07] pl-3">
-          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-300 text-[10px] font-semibold text-zinc-900">
-            OP
+          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-foreground/[0.1] text-[10px] font-semibold text-foreground">
+            {(user?.username ?? "OP").slice(0, 2).toUpperCase()}
           </div>
           <div className="hidden sm:block text-left">
-            <p className="text-xs font-medium leading-none text-foreground">Operations</p>
-            <p className="text-[10px] text-muted-foreground leading-tight">Administrator</p>
+            <p className="text-xs font-medium leading-none text-foreground">{user?.username ?? "Operations"}</p>
+            <p className="text-[10px] capitalize text-muted-foreground leading-tight">{typeof user?.role === "string" ? user.role.toLowerCase() : user?.role.name.toLowerCase() ?? "Account"}</p>
           </div>
+          <button type="button" aria-label="Sign out" title="Sign out" onClick={async () => { await onLogout?.(); router.replace("/login"); }} className="ml-1 rounded-md p-2 text-muted-foreground transition-colors hover:bg-foreground/[0.06] hover:text-foreground"><LogOut className="h-3.5 w-3.5" /></button>
         </div>
       </div>
     </header>
