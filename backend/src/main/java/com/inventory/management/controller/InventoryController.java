@@ -1,5 +1,7 @@
 package com.inventory.management.controller;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+
 import com.inventory.management.dto.request.StockMovementRequest;
 import com.inventory.management.dto.response.ApiResponse;
 import com.inventory.management.service.InventoryService;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 @RestController
+@ConditionalOnBean(com.inventory.management.service.InventoryService.class)
 @RequestMapping("/inventory")
 @RequiredArgsConstructor
 public class InventoryController {

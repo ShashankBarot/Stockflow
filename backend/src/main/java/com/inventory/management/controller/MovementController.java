@@ -1,5 +1,7 @@
 package com.inventory.management.controller;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+
 import com.inventory.management.dto.request.StockMovementRequest;
 import com.inventory.management.dto.response.ApiResponse;
 import com.inventory.management.service.InventoryService;
@@ -11,21 +13,22 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import com.inventory.management.repository.UserRepository;
+import com.inventory.management.service.AuthService;
 
 @RestController
+@ConditionalOnBean(com.inventory.management.service.InventoryService.class)
 @RequestMapping("/movements")
 @RequiredArgsConstructor
 public class MovementController {
 
     private final InventoryService inventoryService;
-    private final UserRepository userRepository;
+    private final AuthService authService;
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'STAFF')")
     public ResponseEntity<ApiResponse<?>> createMovement(
             @Valid @RequestBody StockMovementRequest request, Authentication authentication) {
-        Long userId = userRepository.findByUsername(authentication.getName()).orElseThrow().getId();
+        Long userId = authService.userId(authentication.getName());
         return ResponseEntity.ok(inventoryService.createMovement(request, userId));
     }
 

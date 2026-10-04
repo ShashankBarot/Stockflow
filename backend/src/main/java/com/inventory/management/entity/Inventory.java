@@ -29,9 +29,11 @@ public class Inventory {
     private Warehouse warehouse;
 
     @Column(nullable = false)
+    @Builder.Default
     private Integer quantity = 0;
 
     @Column(name = "min_threshold")
+    @Builder.Default
     private Integer minThreshold = 0;
 
     @Column(name = "max_capacity")

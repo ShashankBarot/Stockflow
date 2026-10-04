@@ -63,9 +63,21 @@ npm run dev
 - Backend API: http://localhost:8080/api/v1
 - Swagger UI: http://localhost:8080/api/v1/swagger-ui.html
 
-## Default Credentials
-- **Username:** admin
-- **Password:** admin123
+## Authentication Setup
+
+Authentication uses short-lived JWT access tokens, rotating refresh tokens stored as hashes, and BCrypt password hashes. On first startup with an empty users table, the backend creates an administrator only when `INITIAL_ADMIN_USERNAME`, `INITIAL_ADMIN_EMAIL`, and `INITIAL_ADMIN_PASSWORD` are configured. Set a unique `JWT_SECRET` of at least 32 characters before starting the backend. There are no built-in default credentials.
+
+Roles are `ADMIN`, `MANAGER`, and `STAFF`. Only an administrator can create additional staff accounts through `POST /api/v1/auth/register`; public self-registration is disabled.
+
+| Method | Endpoint | Access |
+| :-- | :-- | :-- |
+| POST | `/api/v1/auth/login` | Public |
+| POST | `/api/v1/auth/refresh` | Public; valid rotating refresh token required |
+| POST | `/api/v1/auth/logout` | Authenticated |
+| GET | `/api/v1/auth/me` | Authenticated |
+| POST | `/api/v1/auth/register` | ADMIN |
+
+Product, warehouse, and inventory threshold writes require ADMIN or MANAGER. Stock movement creation is available to all three roles.
 
 ## Development Roadmap
 

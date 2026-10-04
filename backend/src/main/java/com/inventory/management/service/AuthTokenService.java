@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.authentication.BadCredentialsException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -33,14 +34,11 @@ public class AuthTokenService {
 
     @Transactional
     public User consumeRefreshToken(String token) {
-        if (token == null || !jwt.isRefreshToken(token)) throw new IllegalArgumentException("Invalid refresh token");
-        RefreshToken stored = refreshTokens.findByTokenHashAndRevokedAtIsNull(hash(token))
-                .orElseThrow(() -> new IllegalArgumentException("Invalid refresh token"));
-        if (stored.getExpiresAt().isBefore(Instant.now()) || !jwt.validateToken(token)) {
-            stored.setRevokedAt(Instant.now());
-            refreshTokens.save(stored);
-            throw new IllegalArgumentException("Expired refresh token");
-        }
+        if (token == null || !jwt.isRefreshToken(token)) throw new BadCredentialsException("Invalid refresh token");
+        RefreshToken stored = refreshTokens.findActiveForUpdate(hash(token))
+                .orElseThrow(() -> new BadCredentialsException("Invalid refresh token"));
+        if (stored.getExpiresAt().isBefore(Instant.now()) || !jwt.validateToken(token))
+            throw new BadCredentialsException("Expired refresh token");
         stored.setRevokedAt(Instant.now());
         return stored.getUser();
     }
@@ -50,9 +48,13 @@ public class AuthTokenService {
         refreshTokens.deleteAllByUserId(user.getId());
     }
 
+    @Transactional
     public void revoke(String token) {
         if (token == null || !jwt.validateToken(token) || !jwt.isRefreshToken(token)) return;
-        refreshTokens.findByTokenHashAndRevokedAtIsNull(hash(token)).ifPresent(t -> t.setRevokedAt(Instant.now()));
+        refreshTokens.findByTokenHashAndRevokedAtIsNull(hash(token)).ifPresent(t -> {
+            t.setRevokedAt(Instant.now());
+            refreshTokens.save(t);
+        });
     }
 
     private String hash(String token) {

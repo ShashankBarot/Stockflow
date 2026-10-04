@@ -14,7 +14,6 @@ services:
       MYSQL_PASSWORD: ${DB_PASSWORD:-root}
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
@@ -35,7 +34,10 @@ services:
       DB_URL: jdbc:mysql://mysql:3306/stock_management?useSSL=false&allowPublicKeyRetrieval=true
       DB_USERNAME: ${DB_USER:-inventory_user}
       DB_PASSWORD: ${DB_PASSWORD:-root}
-      JWT_SECRET: ${JWT_SECRET:-change_this_to_a_very_long_secure_random_string_in_production}
+      JWT_SECRET: ${JWT_SECRET:?Set a random JWT_SECRET in .env}
+      INITIAL_ADMIN_USERNAME: ${INITIAL_ADMIN_USERNAME:-}
+      INITIAL_ADMIN_EMAIL: ${INITIAL_ADMIN_EMAIL:-}
+      INITIAL_ADMIN_PASSWORD: ${INITIAL_ADMIN_PASSWORD:-}
       JWT_ACCESS_EXPIRATION: ${JWT_ACCESS_EXPIRATION:-900000}
       JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION:-604800000}
       SHOW_SQL: ${SHOW_SQL:-false}

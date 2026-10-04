@@ -19,6 +19,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.AuthenticationException;
 import java.util.Locale;
 
 @Service
@@ -38,7 +39,7 @@ public class AuthServiceImpl implements AuthService {
         try {
             authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
-        } catch (RuntimeException exception) {
+        } catch (AuthenticationException exception) {
             throw new BadCredentialsException("Invalid credentials");
         }
         User user = users.findByUsername(authentication.getName()).orElseThrow();
@@ -82,6 +83,12 @@ public class AuthServiceImpl implements AuthService {
         UserDetails principal = (UserDetails) authentication.getPrincipal();
         User user = users.findByUsername(principal.getUsername()).orElseThrow();
         return ApiResponse.ok(UserResponse.from(user));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Long userId(String username) {
+        return users.findByUsername(username).orElseThrow().getId();
     }
 
     private AuthResponse issueTokens(User user) {

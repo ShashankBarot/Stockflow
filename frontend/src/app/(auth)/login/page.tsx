@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { ArrowRight, Boxes, LockKeyhole } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Input } from "@/components/ui/input";
@@ -11,7 +11,6 @@ import { FormField } from "@/components/ui/form-field";
 export default function LoginPage() {
   const { login, isLoading, error, isAuthenticated } = useAuth();
   const router = useRouter();
-  const params = useSearchParams();
   const [username, setUsername] = React.useState("");
   const [password, setPassword] = React.useState("");
 
@@ -21,7 +20,7 @@ export default function LoginPage() {
     event.preventDefault();
     try {
       await login({ username: username.trim(), password });
-      const next = params.get("next");
+      const next = new URLSearchParams(window.location.search).get("next");
       router.replace(next?.startsWith("/") ? next : "/");
     } catch { /* The shared auth state displays the service error. */ }
   }
@@ -30,12 +29,12 @@ export default function LoginPage() {
     <main className="mx-auto w-full max-w-[400px]">
       <div className="mb-7 flex items-center gap-3">
         <span className="grid h-9 w-9 place-items-center rounded-md bg-foreground text-background"><Boxes className="h-5 w-5" /></span>
-        <div><p className="text-sm font-semibold tracking-tight">Stockroom</p><p className="text-[11px] text-muted-foreground">Inventory operations</p></div>
+        <div><p className="text-sm font-semibold tracking-tight">Stockflow</p><p className="text-[11px] text-muted-foreground">Inventory operations</p></div>
       </div>
       <section className="border-y border-white/[0.08] py-6">
         <div className="mb-6">
           <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-muted-foreground">Workspace access</p>
-          <h1 className="mt-2 text-[25px] font-medium tracking-tight">Sign in to Stockroom</h1>
+          <h1 className="mt-2 text-[25px] font-medium tracking-tight">Sign in to Stockflow</h1>
           <p className="mt-1.5 text-sm text-muted-foreground">Continue to your inventory and warehouse operations.</p>
         </div>
         <form onSubmit={onSubmit} className="space-y-4">
@@ -49,7 +48,7 @@ export default function LoginPage() {
           <Button type="submit" className="w-full" disabled={isLoading}><LockKeyhole className="h-4 w-4" />{isLoading ? "Signing in…" : "Sign in"}<ArrowRight className="ml-auto h-4 w-4" /></Button>
         </form>
       </section>
-      <p className="mt-4 text-xs text-muted-foreground">Access is provisioned by your Stockroom administrator.</p>
+      <p className="mt-4 text-xs text-muted-foreground">Access is provisioned by your Stockflow administrator.</p>
     </main>
   );
 }

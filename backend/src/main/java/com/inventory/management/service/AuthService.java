@@ -11,4 +11,5 @@ public interface AuthService {
     ApiResponse<?> refreshToken(String refreshToken);
     ApiResponse<?> logout(String authorizationHeader, String refreshToken);
     ApiResponse<?> currentUser(Authentication authentication);
+    Long userId(String username);
 }

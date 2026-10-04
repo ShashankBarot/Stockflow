@@ -147,7 +147,7 @@ export function AppSidebar({
             </div>
             <div>
               <span className="text-[13px] font-semibold tracking-tight text-foreground">
-                Stockroom
+                Stockflow
               </span>
             </div>
           </div>
