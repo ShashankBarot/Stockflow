@@ -29,7 +29,14 @@ export function TopBar({
   const whRef = React.useRef<HTMLDivElement | null>(null);
 
   const { data: warehousesData } = useWarehouses();
-  const warehouses = warehousesData?.data ?? [];
+  const rawWarehouses = warehousesData?.data;
+  const warehouses = Array.isArray(rawWarehouses)
+    ? rawWarehouses
+    : Array.isArray((rawWarehouses as unknown as { content?: Array<{ id: number; name: string; location: string }> })?.content)
+    ? (rawWarehouses as unknown as { content: Array<{ id: number; name: string; location: string }> }).content
+    : Array.isArray((warehousesData as unknown as { content?: Array<{ id: number; name: string; location: string }> })?.content)
+    ? (warehousesData as unknown as { content: Array<{ id: number; name: string; location: string }> }).content
+    : [];
 
   React.useEffect(() => {
     const isDark = document.documentElement.classList.contains("dark");
@@ -58,7 +65,9 @@ export function TopBar({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [whOpen]);
 
-  const activeWarehouse = warehouses.find((w) => String(w.id) === selectedWarehouseId);
+  const activeWarehouse = Array.isArray(warehouses)
+    ? warehouses.find((w) => String(w.id) === selectedWarehouseId)
+    : undefined;
 
   return (
     <header className="sticky top-0 z-30 flex h-14 w-full items-center justify-between border-b border-white/[0.055] bg-background/90 px-4 backdrop-blur-md md:px-6">
