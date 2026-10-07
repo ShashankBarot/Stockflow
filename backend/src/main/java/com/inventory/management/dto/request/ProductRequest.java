@@ -26,8 +26,9 @@ public class ProductRequest {
 
     private String description;
 
-    @Size(max = 100)
-    private String category;
+    private Long categoryId;
+
+    private Long brandId;
 
     @DecimalMin(value = "0.0", inclusive = false, message = "Base price must be positive")
     private BigDecimal basePrice;
