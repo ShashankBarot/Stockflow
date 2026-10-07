@@ -8,6 +8,10 @@ public interface SupplierService {
 
     ApiResponse<?> getAllSuppliers(String search, Pageable pageable);
 
+    default ApiResponse<?> getAllSuppliers(Pageable pageable) {
+        return getAllSuppliers(null, pageable);
+    }
+
     ApiResponse<?> getSupplierById(Long id);
 
     ApiResponse<?> createSupplier(SupplierRequest request);

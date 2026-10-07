@@ -38,9 +38,13 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     @Transactional
     public ApiResponse<?> createCustomer(CustomerRequest request) {
+        String email = request.getEmail() == null ? null : request.getEmail().trim();
+        if (email != null && !email.isBlank() && customerRepository.existsByEmail(email)) {
+            throw new IllegalArgumentException("Customer with email '" + email + "' already exists");
+        }
         Customer customer = customerRepository.save(Customer.builder()
                 .name(request.getName().trim())
-                .email(request.getEmail())
+                .email(email)
                 .phone(request.getPhone())
                 .address(request.getAddress())
                 .build());
@@ -53,8 +57,13 @@ public class CustomerServiceImpl implements CustomerService {
         Customer customer = customerRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Customer not found with id: " + id));
 
+        String email = request.getEmail() == null ? null : request.getEmail().trim();
+        if (email != null && !email.isBlank() && !email.equalsIgnoreCase(customer.getEmail())
+                && customerRepository.existsByEmail(email)) {
+            throw new IllegalArgumentException("Customer with email '" + email + "' already exists");
+        }
         customer.setName(request.getName().trim());
-        customer.setEmail(request.getEmail());
+        customer.setEmail(email);
         customer.setPhone(request.getPhone());
         customer.setAddress(request.getAddress());
 

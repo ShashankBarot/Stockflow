@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface SupplierRepository extends JpaRepository<Supplier, Long> {
 
+    boolean existsByName(String name);
+
     Page<Supplier> findByNameContainingIgnoreCase(String name, Pageable pageable);
 }
 

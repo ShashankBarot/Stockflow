@@ -8,6 +8,10 @@ public interface BrandService {
 
     ApiResponse<?> getAllBrands(String search, Pageable pageable);
 
+    default ApiResponse<?> getAllBrands(Pageable pageable) {
+        return getAllBrands(null, pageable);
+    }
+
     ApiResponse<?> getBrandById(Long id);
 
     ApiResponse<?> createBrand(BrandRequest request);

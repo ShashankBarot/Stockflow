@@ -8,6 +8,10 @@ public interface CategoryService {
 
     ApiResponse<?> getAllCategories(String search, Pageable pageable);
 
+    default ApiResponse<?> getAllCategories(Pageable pageable) {
+        return getAllCategories(null, pageable);
+    }
+
     ApiResponse<?> getCategoryById(Long id);
 
     ApiResponse<?> createCategory(CategoryRequest request);

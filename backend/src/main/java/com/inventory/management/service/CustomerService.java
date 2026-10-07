@@ -8,6 +8,10 @@ public interface CustomerService {
 
     ApiResponse<?> getAllCustomers(String search, Pageable pageable);
 
+    default ApiResponse<?> getAllCustomers(Pageable pageable) {
+        return getAllCustomers(null, pageable);
+    }
+
     ApiResponse<?> getCustomerById(Long id);
 
     ApiResponse<?> createCustomer(CustomerRequest request);

@@ -38,8 +38,12 @@ public class SupplierServiceImpl implements SupplierService {
     @Override
     @Transactional
     public ApiResponse<?> createSupplier(SupplierRequest request) {
+        String name = request.getName().trim();
+        if (supplierRepository.existsByName(name)) {
+            throw new IllegalArgumentException("Supplier with name '" + name + "' already exists");
+        }
         Supplier supplier = supplierRepository.save(Supplier.builder()
-                .name(request.getName().trim())
+                .name(name)
                 .contactPerson(request.getContactPerson())
                 .email(request.getEmail())
                 .phone(request.getPhone())
@@ -54,7 +58,11 @@ public class SupplierServiceImpl implements SupplierService {
         Supplier supplier = supplierRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Supplier not found with id: " + id));
 
-        supplier.setName(request.getName().trim());
+        String name = request.getName().trim();
+        if (!supplier.getName().equalsIgnoreCase(name) && supplierRepository.existsByName(name)) {
+            throw new IllegalArgumentException("Supplier with name '" + name + "' already exists");
+        }
+        supplier.setName(name);
         supplier.setContactPerson(request.getContactPerson());
         supplier.setEmail(request.getEmail());
         supplier.setPhone(request.getPhone());
