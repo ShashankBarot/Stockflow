@@ -87,7 +87,7 @@ export function MetricsStrip({ metrics = DEFAULT_METRICS }: MetricsStripProps) {
                     ? "text-[var(--warning)]"
                     : "text-foreground"
                 }`}
-              >
+              > 
                 <LiveFigure value={m.value} format={m.format} />
               </span>
 

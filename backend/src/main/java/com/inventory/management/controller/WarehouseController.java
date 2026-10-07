@@ -1,34 +1,39 @@
 package com.inventory.management.controller;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-
+import com.inventory.management.dto.request.WarehouseRequest;
 import com.inventory.management.dto.response.ApiResponse;
-import com.inventory.management.service.InventoryService;
+import com.inventory.management.service.WarehouseService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
-@ConditionalOnBean(com.inventory.management.service.InventoryService.class)
 @RequestMapping("/warehouses")
 @RequiredArgsConstructor
 public class WarehouseController {
 
-    private final InventoryService inventoryService;
+    private final WarehouseService warehouseService;
 
     @GetMapping
     public ResponseEntity<ApiResponse<?>> getAllWarehouses(
             @PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(inventoryService.getInventory(pageable));
+        return ResponseEntity.ok(warehouseService.getAllWarehouses(pageable));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<?>> getWarehouseById(
+            @PathVariable Long id) {
+        return ResponseEntity.ok(warehouseService.getWarehouseById(id));
     }
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<ApiResponse<?>> createWarehouse(
-            @RequestBody Object request) {
-        return ResponseEntity.ok(inventoryService.createProduct(request));
+            @Valid @RequestBody WarehouseRequest request) {
+        return ResponseEntity.ok(warehouseService.createWarehouse(request));
     }
 }

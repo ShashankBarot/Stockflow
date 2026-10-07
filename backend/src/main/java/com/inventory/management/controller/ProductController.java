@@ -1,48 +1,47 @@
 package com.inventory.management.controller;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-
+import com.inventory.management.dto.request.ProductRequest;
 import com.inventory.management.dto.response.ApiResponse;
-import com.inventory.management.service.InventoryService;
+import com.inventory.management.service.ProductService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
-@ConditionalOnBean(com.inventory.management.service.InventoryService.class)
 @RequestMapping("/products")
 @RequiredArgsConstructor
 public class ProductController {
 
-    private final InventoryService inventoryService;
+    private final ProductService productService;
 
     @GetMapping
     public ResponseEntity<ApiResponse<?>> getAllProducts(
             @PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(inventoryService.getAllProducts(pageable));
+        return ResponseEntity.ok(productService.getAllProducts(pageable));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<?>> getProductById(
             @PathVariable Long id) {
-        return ResponseEntity.ok(inventoryService.getProductById(id));
+        return ResponseEntity.ok(productService.getProductById(id));
     }
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<ApiResponse<?>> createProduct(
-            @RequestBody Object request) {
-        return ResponseEntity.ok(inventoryService.createProduct(request));
+            @Valid @RequestBody ProductRequest request) {
+        return ResponseEntity.ok(productService.createProduct(request));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<ApiResponse<?>> updateProduct(
             @PathVariable Long id,
-            @RequestBody Object request) {
-        return ResponseEntity.ok(inventoryService.updateProduct(id, request));
+            @Valid @RequestBody ProductRequest request) {
+        return ResponseEntity.ok(productService.updateProduct(id, request));
     }
 }
