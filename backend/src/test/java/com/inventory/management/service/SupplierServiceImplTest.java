@@ -75,3 +75,4 @@ class SupplierServiceImplTest {
         assertThat(((SupplierResponse) response.getData()).name()).isEqualTo("Acme Corp");
     }
 }
+

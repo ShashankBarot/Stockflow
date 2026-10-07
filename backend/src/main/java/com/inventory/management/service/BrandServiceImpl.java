@@ -57,3 +57,4 @@ public class BrandServiceImpl implements BrandService {
         return ApiResponse.ok("Brand updated", BrandResponse.from(brands.save(brand)));
     }
 }
+

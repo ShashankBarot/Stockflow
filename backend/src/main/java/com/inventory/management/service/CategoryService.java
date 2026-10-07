@@ -10,3 +10,4 @@ public interface CategoryService {
     ApiResponse<?> createCategory(CategoryRequest request);
     ApiResponse<?> updateCategory(Long id, CategoryRequest request);
 }
+

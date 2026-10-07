@@ -32,3 +32,4 @@ public class Brand {
         createdAt = LocalDateTime.now();
     }
 }
+

@@ -10,3 +10,4 @@ public interface BrandService {
     ApiResponse<?> createBrand(BrandRequest request);
     ApiResponse<?> updateBrand(Long id, BrandRequest request);
 }
+

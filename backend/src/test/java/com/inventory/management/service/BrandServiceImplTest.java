@@ -75,3 +75,4 @@ class BrandServiceImplTest {
         assertThat(((BrandResponse) response.getData()).name()).isEqualTo("Samsung");
     }
 }
+

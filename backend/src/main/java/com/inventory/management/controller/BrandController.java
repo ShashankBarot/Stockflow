@@ -45,3 +45,4 @@ public class BrandController {
         return ResponseEntity.ok(brandService.updateBrand(id, request));
     }
 }
+

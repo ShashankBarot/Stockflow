@@ -45,3 +45,4 @@ public class SupplierController {
         return ResponseEntity.ok(supplierService.updateSupplier(id, request));
     }
 }
+

@@ -10,3 +10,4 @@ public interface SupplierService {
     ApiResponse<?> createSupplier(SupplierRequest request);
     ApiResponse<?> updateSupplier(Long id, SupplierRequest request);
 }
+
