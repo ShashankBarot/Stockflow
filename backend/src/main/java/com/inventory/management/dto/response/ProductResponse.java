@@ -11,6 +11,7 @@ public record ProductResponse(
         String name,
         String description,
         String category,
+        String brand,
         BigDecimal basePrice,
         LocalDateTime createdAt
 ) {
@@ -20,7 +21,8 @@ public record ProductResponse(
                 product.getSku(),
                 product.getName(),
                 product.getDescription(),
-                product.getCategory(),
+                product.getCategory() != null ? product.getCategory().getName() : null,
+                product.getBrand() != null ? product.getBrand().getName() : null,
                 product.getBasePrice(),
                 product.getCreatedAt()
         );
