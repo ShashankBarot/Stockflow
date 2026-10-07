@@ -20,8 +20,11 @@ public class ProductController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<?>> getAllProducts(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String brand,
             @PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(productService.getAllProducts(pageable));
+        return ResponseEntity.ok(productService.getAllProducts(search, category, brand, pageable));
     }
 
     @GetMapping("/{id}")
@@ -43,5 +46,12 @@ public class ProductController {
             @PathVariable Long id,
             @Valid @RequestBody ProductRequest request) {
         return ResponseEntity.ok(productService.updateProduct(id, request));
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<?>> deleteProduct(
+            @PathVariable Long id) {
+        return ResponseEntity.ok(productService.deleteProduct(id));
     }
 }

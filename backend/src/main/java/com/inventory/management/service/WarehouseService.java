@@ -6,10 +6,18 @@ import org.springframework.data.domain.Pageable;
 
 public interface WarehouseService {
 
-    ApiResponse<?> getAllWarehouses(Pageable pageable);
+    default ApiResponse<?> getAllWarehouses(Pageable pageable) {
+        return getAllWarehouses(null, pageable);
+    }
+
+    ApiResponse<?> getAllWarehouses(String search, Pageable pageable);
 
     ApiResponse<?> getWarehouseById(Long id);
 
     ApiResponse<?> createWarehouse(WarehouseRequest request);
+
+    ApiResponse<?> updateWarehouse(Long id, WarehouseRequest request);
+
+    ApiResponse<?> deleteWarehouse(Long id);
 }
 

@@ -3,6 +3,7 @@ package com.inventory.management.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -27,11 +28,24 @@ public class Product {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(length = 100)
-    private String category;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(
+            name = "category_id",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "fk_products_category")
+    )
+    private Category category;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(
+            name = "brand_id",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "fk_products_brand")
+    )
+    private Brand brand;
 
     @Column(name = "base_price", precision = 10, scale = 2)
-    private java.math.BigDecimal basePrice;
+    private BigDecimal basePrice;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

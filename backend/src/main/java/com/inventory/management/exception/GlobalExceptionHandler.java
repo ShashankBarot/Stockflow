@@ -27,6 +27,11 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error("Invalid credentials"));
     }
 
+    @ExceptionHandler(InsufficientStockException.class)
+    public ResponseEntity<ApiResponse<Void>> handleInsufficientStock(InsufficientStockException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error(ex.getMessage()));
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiResponse<Void>> handleIllegalArgument(IllegalArgumentException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error(ex.getMessage()));
@@ -42,6 +47,18 @@ public class GlobalExceptionHandler {
         });
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(new ApiResponse<>(false, "Validation failed", errors));
+    }
+
+    @ExceptionHandler(org.springframework.web.HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMethodNotSupported(org.springframework.web.HttpRequestMethodNotSupportedException ex) {
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleDataIntegrityViolation(org.springframework.dao.DataIntegrityViolationException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ApiResponse.error("Operation cannot be completed due to database constraint violation or referenced records"));
     }
 
     @ExceptionHandler(Exception.class)

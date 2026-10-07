@@ -10,8 +10,11 @@ public record ProductResponse(
         String sku,
         String name,
         String description,
-        String category,
         BigDecimal basePrice,
+        Long categoryId,
+        String categoryName,
+        Long brandId,
+        String brandName,
         LocalDateTime createdAt
 ) {
     public static ProductResponse from(Product product) {
@@ -20,10 +23,12 @@ public record ProductResponse(
                 product.getSku(),
                 product.getName(),
                 product.getDescription(),
-                product.getCategory(),
                 product.getBasePrice(),
+                product.getCategory() != null ? product.getCategory().getId() : null,
+                product.getCategory() != null ? product.getCategory().getName() : null,
+                product.getBrand() != null ? product.getBrand().getId() : null,
+                product.getBrand() != null ? product.getBrand().getName() : null,
                 product.getCreatedAt()
         );
     }
 }
-

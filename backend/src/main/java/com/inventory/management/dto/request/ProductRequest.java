@@ -2,6 +2,7 @@ package com.inventory.management.dto.request;
 
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -26,10 +27,12 @@ public class ProductRequest {
 
     private String description;
 
-    @Size(max = 100)
-    private String category;
+    @NotNull(message = "Category ID is required")
+    private Long categoryId;
+
+    @NotNull(message = "Brand ID is required")
+    private Long brandId;
 
     @DecimalMin(value = "0.0", inclusive = false, message = "Base price must be positive")
     private BigDecimal basePrice;
 }
-

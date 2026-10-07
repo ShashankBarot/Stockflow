@@ -42,10 +42,15 @@ public class SecurityConfig {
                 .requestMatchers("/auth/login", "/auth/refresh").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.POST, "/auth/register").hasRole("ADMIN")
                 .requestMatchers("/auth/logout", "/auth/me").authenticated()
-                .requestMatchers(org.springframework.http.HttpMethod.POST, "/products/**", "/warehouses/**")
+                .requestMatchers(org.springframework.http.HttpMethod.POST,
+                        "/products/**", "/warehouses/**", "/categories/**", "/brands/**", "/suppliers/**", "/customers/**")
                     .hasAnyRole("ADMIN", "MANAGER")
-                .requestMatchers(org.springframework.http.HttpMethod.PUT, "/products/**", "/warehouses/**", "/inventory/*/threshold")
+                .requestMatchers(org.springframework.http.HttpMethod.PUT,
+                        "/products/**", "/warehouses/**", "/categories/**", "/brands/**", "/suppliers/**", "/customers/**", "/inventory/*/threshold")
                     .hasAnyRole("ADMIN", "MANAGER")
+                .requestMatchers(org.springframework.http.HttpMethod.DELETE,
+                        "/products/**", "/warehouses/**", "/categories/**", "/brands/**", "/suppliers/**", "/customers/**")
+                    .hasRole("ADMIN")
                 .requestMatchers(org.springframework.http.HttpMethod.POST, "/movements/**")
                     .hasAnyRole("ADMIN", "MANAGER", "STAFF")
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()

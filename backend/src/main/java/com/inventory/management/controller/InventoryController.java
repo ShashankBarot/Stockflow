@@ -1,24 +1,17 @@
 package com.inventory.management.controller;
 
+import com.inventory.management.dto.request.InventoryThresholdRequest;
 import com.inventory.management.dto.response.ApiResponse;
 import com.inventory.management.service.InventoryService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-/**
- * InventoryController handles inventory-ledger queries and threshold management.
- *
- * <p>This controller is deferred until Phase B. It requires InventoryService to be
- * implemented before it can load. The @ConditionalOnBean annotation prevents this
- * controller from being registered while InventoryService has no implementation.
- */
 @RestController
-@ConditionalOnBean(InventoryService.class)
 @RequestMapping("/inventory")
 @RequiredArgsConstructor
 public class InventoryController {
@@ -26,22 +19,35 @@ public class InventoryController {
     private final InventoryService inventoryService;
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'STAFF')")
     public ResponseEntity<ApiResponse<?>> getInventory(
+            @RequestParam(required = false) Long productId,
+            @RequestParam(required = false) Long warehouseId,
+            @RequestParam(required = false) Boolean lowStock,
             @PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(inventoryService.getInventory(pageable));
+        return ResponseEntity.ok(inventoryService.getInventory(productId, warehouseId, lowStock, pageable));
     }
 
     @GetMapping("/warehouse/{warehouseId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'STAFF')")
     public ResponseEntity<ApiResponse<?>> getInventoryByWarehouse(
-            @PathVariable Long warehouseId) {
-        return ResponseEntity.ok(inventoryService.getInventoryByWarehouse(warehouseId));
+            @PathVariable Long warehouseId,
+            @PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(inventoryService.getInventoryByWarehouse(warehouseId, pageable));
+    }
+
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'STAFF')")
+    public ResponseEntity<ApiResponse<?>> getInventoryById(
+            @PathVariable Long id) {
+        return ResponseEntity.ok(inventoryService.getInventoryById(id));
     }
 
     @PutMapping("/{id}/threshold")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<ApiResponse<?>> updateInventoryThreshold(
             @PathVariable Long id,
-            @RequestBody Object request) {
+            @Valid @RequestBody InventoryThresholdRequest request) {
         return ResponseEntity.ok(inventoryService.updateInventoryThreshold(id, request));
     }
 }
