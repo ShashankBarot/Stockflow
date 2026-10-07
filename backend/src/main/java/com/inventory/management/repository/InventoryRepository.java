@@ -55,4 +55,10 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
 
     @Query("SELECT i FROM Inventory i WHERE i.warehouse.id = :warehouseId AND i.quantity <= i.minThreshold")
     Page<Inventory> findLowStockByWarehouse(@Param("warehouseId") Long warehouseId, Pageable pageable);
+
+    @Query("SELECT i FROM Inventory i WHERE i.quantity <= i.minThreshold")
+    List<Inventory> findLowStock();
+
+    @Query("SELECT SUM(i.quantity * p.basePrice) FROM Inventory i JOIN i.product p")
+    java.math.BigDecimal calculateTotalStockValue();
 }
