@@ -61,3 +61,4 @@ public class SupplierServiceImpl implements SupplierService {
         return ApiResponse.ok("Supplier updated", SupplierResponse.from(suppliers.save(supplier)));
     }
 }
+

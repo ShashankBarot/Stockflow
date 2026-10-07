@@ -32,3 +32,4 @@ public class Category {
         createdAt = LocalDateTime.now();
     }
 }
+

@@ -75,3 +75,4 @@ class CustomerServiceImplTest {
         assertThat(((CustomerResponse) response.getData()).name()).isEqualTo("John Doe");
     }
 }
+

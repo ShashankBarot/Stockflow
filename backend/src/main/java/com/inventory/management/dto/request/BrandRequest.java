@@ -19,3 +19,4 @@ public class BrandRequest {
 
     private String description;
 }
+

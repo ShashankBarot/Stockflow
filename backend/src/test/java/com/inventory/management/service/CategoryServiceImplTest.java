@@ -75,3 +75,4 @@ class CategoryServiceImplTest {
         assertThat(((CategoryResponse) response.getData()).name()).isEqualTo("Electronics");
     }
 }
+
