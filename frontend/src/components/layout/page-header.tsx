@@ -41,26 +41,26 @@ function PageHeader({
         "sticky top-0 z-30",
         "border-b border-[--color-border]",
         "bg-[--color-canvas]/95 backdrop-blur-sm",
-        "px-6 py-4",
+        "px-3 py-3 sm:px-4 sm:py-4 md:px-6",
         className
       )}
     >
       {breadcrumb && (
         <div className="mb-2 text-xs text-[--color-muted]">{breadcrumb}</div>
       )}
-      <div className="flex items-center justify-between gap-4 min-w-0">
+      <div className="flex min-w-0 flex-col items-stretch justify-between gap-3 sm:flex-row sm:items-center sm:gap-4">
         <div className="min-w-0">
-          <h1 className="text-lg font-semibold tracking-tight text-[--color-ink] truncate">
+          <h1 className="truncate text-lg font-semibold tracking-tight text-[--color-ink]">
             {title}
           </h1>
           {description && (
-            <p className="mt-0.5 text-xs text-[--color-muted] truncate">
+            <p className="mt-0.5 truncate text-xs text-[--color-muted]">
               {description}
             </p>
           )}
         </div>
         {actions && (
-          <div className="flex items-center gap-2 shrink-0">{actions}</div>
+          <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>
         )}
       </div>
     </header>
@@ -77,7 +77,7 @@ function PageContent({
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <main
-      className={cn("flex-1 px-6 py-6 max-w-[1400px] mx-auto w-full", className)}
+      className={cn("mx-auto flex w-full max-w-[1400px] flex-1 px-3 py-4 sm:px-4 sm:py-6 md:px-6", className)}
       {...props}
     >
       {children}
