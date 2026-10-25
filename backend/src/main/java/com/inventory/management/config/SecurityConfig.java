@@ -42,7 +42,7 @@ public class SecurityConfig {
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/health").permitAll()
                 .requestMatchers("/auth/login", "/auth/refresh").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.POST, "/auth/register").hasRole("ADMIN")
-                .requestMatchers("/auth/logout", "/auth/me").authenticated()
+                .requestMatchers("/auth/logout", "/auth/me", "/auth/change-password").authenticated()
                 .requestMatchers(org.springframework.http.HttpMethod.POST,
                         "/products/**", "/warehouses/**", "/categories/**", "/brands/**", "/suppliers/**", "/customers/**")
                     .hasAnyRole("ADMIN", "MANAGER")

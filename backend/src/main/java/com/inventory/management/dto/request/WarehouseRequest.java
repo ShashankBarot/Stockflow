@@ -2,6 +2,7 @@ package com.inventory.management.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,5 +21,8 @@ public class WarehouseRequest {
     @NotBlank(message = "Location is required")
     @Size(min = 1, max = 255, message = "Location must be between 1 and 255 characters")
     private String location;
+
+    @Min(value = 1, message = "Capacity must be greater than zero")
+    private Integer capacity;
 }
 

@@ -80,12 +80,14 @@ export interface Warehouse {
   id: number;
   name: string;
   location: string;
+  capacity?: number | null;
   createdAt: string;
 }
 
 export interface CreateWarehouseRequest {
   name: string;
   location: string;
+  capacity?: number | null;
 }
 
 // ===================== Inventory Types =====================

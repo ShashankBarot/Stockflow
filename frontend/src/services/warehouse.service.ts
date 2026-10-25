@@ -29,4 +29,11 @@ export const warehouseService = {
     const response = await axiosInstance.post("/warehouses", data);
     return response.data;
   },
+  updateWarehouse: async (id: number, data: CreateWarehouseRequest): Promise<Warehouse> => {
+    const response = await axiosInstance.put(`/warehouses/${id}`, data);
+    return response.data;
+  },
+  deleteWarehouse: async (id: number): Promise<void> => {
+    await axiosInstance.delete(`/warehouses/${id}`);
+  },
 };

@@ -2,6 +2,7 @@ package com.inventory.management.service;
 
 import com.inventory.management.dto.request.LoginRequest;
 import com.inventory.management.dto.request.RegisterRequest;
+import com.inventory.management.dto.request.ChangePasswordRequest;
 import com.inventory.management.dto.response.ApiResponse;
 import org.springframework.security.core.Authentication;
 
@@ -11,5 +12,6 @@ public interface AuthService {
     ApiResponse<?> refreshToken(String refreshToken);
     ApiResponse<?> logout(String authorizationHeader, String refreshToken);
     ApiResponse<?> currentUser(Authentication authentication);
+    ApiResponse<?> changePassword(Authentication authentication, ChangePasswordRequest request);
     Long userId(String username);
 }

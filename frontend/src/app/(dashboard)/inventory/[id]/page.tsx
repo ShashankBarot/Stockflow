@@ -9,6 +9,7 @@ import { useProduct, useInventory } from "@/hooks/useInventory";
 import { useMovements } from "@/hooks/useMovements";
 import { AdjustStockDrawer } from "@/components/inventory/adjust-stock-drawer";
 import type { Product } from "@/types";
+import { formatApiDate } from "@/lib/date-time";
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -188,7 +189,7 @@ export default function ProductDetailPage() {
                     </td>
                     <td className="py-2 px-2 text-muted-foreground">{m.warehouse?.name}</td>
                     <td className="py-2 px-2 text-muted-foreground/70">
-                      {new Date(m.createdAt).toLocaleDateString()}
+                      {formatApiDate(m.createdAt)}
                     </td>
                     <td className="py-2 pr-2 text-right text-muted-foreground">{m.notes || "-"}</td>
                   </tr>

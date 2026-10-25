@@ -7,4 +7,7 @@ export const authService = {
   refreshToken: async (refreshToken: string): Promise<LoginResponse> => (await axiosInstance.post<ApiEnvelope<LoginResponse>>("/auth/refresh", { refreshToken })).data.data,
   logout: async (refreshToken: string): Promise<void> => { await axiosInstance.post("/auth/logout", { refreshToken }); },
   getMe: async (): Promise<User> => (await axiosInstance.get<ApiEnvelope<User>>("/auth/me")).data.data,
+  changePassword: async (currentPassword: string, newPassword: string): Promise<void> => {
+    await axiosInstance.post("/auth/change-password", { currentPassword, newPassword });
+  },
 };

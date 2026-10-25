@@ -7,6 +7,7 @@ import { LiveFigure } from "@/components/ui/live-figure";
 import { BUTTON, FIELD } from "@/components/ui/control-classes";
 import { useMovements } from "@/hooks/useMovements";
 import type { StockMovement, MovementType } from "@/types";
+import { formatApiDateTime } from "@/lib/date-time";
 
 type FilterType = "ALL" | MovementType;
 
@@ -231,7 +232,7 @@ export default function MovementsPage() {
                     </td>
 
                     <td className="px-3 py-2.5 font-mono text-[11px] text-muted-foreground/70">
-                      {new Date(m.createdAt).toLocaleString(undefined, {
+                      {formatApiDateTime(m.createdAt, {
                         month: "short",
                         day: "numeric",
                         hour: "2-digit",

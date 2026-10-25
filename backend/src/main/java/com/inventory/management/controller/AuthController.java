@@ -3,6 +3,7 @@ package com.inventory.management.controller;
 import com.inventory.management.dto.request.LoginRequest;
 import com.inventory.management.dto.request.RegisterRequest;
 import com.inventory.management.dto.request.RefreshTokenRequest;
+import com.inventory.management.dto.request.ChangePasswordRequest;
 import com.inventory.management.dto.response.ApiResponse;
 import com.inventory.management.service.AuthService;
 import jakarta.validation.Valid;
@@ -43,5 +44,11 @@ public class AuthController {
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<?>> getMe(Authentication authentication) {
         return ResponseEntity.ok(authService.currentUser(authentication));
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<ApiResponse<?>> changePassword(Authentication authentication,
+                                                           @Valid @RequestBody ChangePasswordRequest request) {
+        return ResponseEntity.ok(authService.changePassword(authentication, request));
     }
 }

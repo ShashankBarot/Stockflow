@@ -24,3 +24,19 @@ export function useCreateWarehouse() {
     },
   });
 }
+
+export function useUpdateWarehouse() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: CreateWarehouseRequest }) => warehouseService.updateWarehouse(id, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: WAREHOUSE_QUERY_KEYS.all }),
+  });
+}
+
+export function useDeleteWarehouse() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => warehouseService.deleteWarehouse(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: WAREHOUSE_QUERY_KEYS.all }),
+  });
+}

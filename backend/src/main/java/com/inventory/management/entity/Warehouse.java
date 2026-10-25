@@ -24,6 +24,9 @@ public class Warehouse {
     @Column(nullable = false, length = 255)
     private String location;
 
+    @Column(name = "capacity")
+    private Integer capacity;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 

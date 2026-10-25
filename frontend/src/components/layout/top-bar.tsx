@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { notificationService } from "@/services/notification.service";
 import type { NotificationItem } from "@/types";
+import { formatApiDateTime } from "@/lib/date-time";
 
 interface TopBarProps {
   onSearchChange?: (term: string) => void;
@@ -195,7 +196,7 @@ export function TopBar({
             <div className="max-h-80 overflow-y-auto">
               {notificationsLoading ? <p className="px-3 py-6 text-center text-xs text-muted-foreground">Loading notifications…</p> : notifications.length === 0 ? <p className="px-3 py-6 text-center text-xs text-muted-foreground">You’re all caught up.</p> : notifications.map((notification) => <button key={notification.id} type="button" onClick={() => void markNotificationRead(notification)} className={`flex w-full gap-2.5 border-b border-border/30 px-3 py-3 text-left last:border-0 hover:bg-foreground/[0.04] ${notification.isRead ? "opacity-65" : ""}`}>
                 <PackageCheck className={`mt-0.5 h-3.5 w-3.5 shrink-0 ${notification.type === "LOW_STOCK" ? "text-amber-400" : "text-sky-400"}`} />
-                <span className="min-w-0"><span className="flex items-center gap-1.5 text-[11px] font-semibold text-foreground">{notification.title}{!notification.isRead && <span className="h-1.5 w-1.5 rounded-full bg-sky-400" />}</span><span className="mt-0.5 block text-[10px] leading-relaxed text-muted-foreground">{notification.message}</span><span className="mt-1 block text-[9px] text-muted-foreground/70">{new Date(notification.createdAt).toLocaleString()}</span></span>
+                <span className="min-w-0"><span className="flex items-center gap-1.5 text-[11px] font-semibold text-foreground">{notification.title}{!notification.isRead && <span className="h-1.5 w-1.5 rounded-full bg-sky-400" />}</span><span className="mt-0.5 block text-[10px] leading-relaxed text-muted-foreground">{notification.message}</span><span className="mt-1 block text-[9px] text-muted-foreground/70">{formatApiDateTime(notification.createdAt)}</span></span>
               </button>)}
             </div>
           </div>}

@@ -2,25 +2,42 @@
 
 import * as React from "react";
 import { ProtectedRoute } from "@/components/auth/protected-route";
-import { Moon, Sun, Shield, Save, Check, UserPlus } from "lucide-react";
+import { Moon, Sun, Shield, Save, Check, UserPlus, KeyRound } from "lucide-react";
 import { BUTTON_PRIMARY, FIELD } from "@/components/ui/control-classes";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
 import axiosInstance from "@/lib/axios";
+import { authService } from "@/services/auth.service";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { masterDataService } from "@/services/master-data.service";
 
 export default function SettingsPage() {
   const [theme, setTheme] = React.useState<"dark" | "light">("dark");
   const [defaultThreshold, setDefaultThreshold] = React.useState(10);
   const [refreshInterval, setRefreshInterval] = React.useState("30");
   const [saved, setSaved] = React.useState(false);
-  const { register } = useAuth();
+  const { register, user, logout } = useAuth();
+  const queryClient = useQueryClient();
   const [account, setAccount] = React.useState({ username: "", email: "", password: "", role: "STAFF" as "MANAGER" | "STAFF" });
   const [accountMessage, setAccountMessage] = React.useState("");
   const [accountError, setAccountError] = React.useState("");
   const [creatingAccount, setCreatingAccount] = React.useState(false);
   const [roleMismatchUsername, setRoleMismatchUsername] = React.useState<string | null>(null);
   const [apiStatus, setApiStatus] = React.useState<"checking" | "healthy" | "unavailable">("checking");
-  const { user } = useAuth();
+  const [passwords, setPasswords] = React.useState({ current: "", next: "", confirm: "" });
+  const [passwordMessage, setPasswordMessage] = React.useState("");
+  const [passwordError, setPasswordError] = React.useState("");
+  const [changingPassword, setChangingPassword] = React.useState(false);
+  const [categoryName, setCategoryName] = React.useState("");
+  const [brandName, setBrandName] = React.useState("");
+  const [catalogError, setCatalogError] = React.useState("");
+  const [catalogMessage, setCatalogMessage] = React.useState("");
+  const [savingCatalog, setSavingCatalog] = React.useState(false);
+  const isAdmin = (typeof user?.role === "string" ? user.role : user?.role.name) === "ADMIN";
+  const role = typeof user?.role === "string" ? user.role : user?.role.name;
+  const canManageCatalog = role === "ADMIN" || role === "MANAGER";
+  const categoriesQuery = useQuery({ queryKey: ["categories"], queryFn: masterDataService.getCategories, enabled: canManageCatalog });
+  const brandsQuery = useQuery({ queryKey: ["brands"], queryFn: masterDataService.getBrands, enabled: canManageCatalog });
 
   React.useEffect(() => {
     let active = true;
@@ -46,8 +63,7 @@ export default function SettingsPage() {
     }
   };
 
-  const handleSave = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSave = () => {
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -70,20 +86,67 @@ export default function SettingsPage() {
     } finally { setCreatingAccount(false); }
   };
 
+  const changePassword = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setPasswordError("");
+    setPasswordMessage("");
+    if (passwords.next !== passwords.confirm) {
+      setPasswordError("The new passwords do not match.");
+      return;
+    }
+    setChangingPassword(true);
+    try {
+      await authService.changePassword(passwords.current, passwords.next);
+      setPasswordMessage("Password changed. Signing you out so you can sign in with the new password…");
+      setPasswords({ current: "", next: "", confirm: "" });
+      void logout();
+      window.location.replace("/login?passwordChanged=1");
+    } catch (error) {
+      setPasswordError((error as { response?: { data?: { message?: string } } })?.response?.data?.message ?? "Could not change the password. Check your current password and try again.");
+    } finally {
+      setChangingPassword(false);
+    }
+  };
+
+  const addCatalogItem = async (kind: "category" | "brand", event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const name = (kind === "category" ? categoryName : brandName).trim();
+    if (!name) return;
+    setCatalogError("");
+    setCatalogMessage("");
+    setSavingCatalog(true);
+    try {
+      if (kind === "category") {
+        await masterDataService.createCategory({ name, description: "" });
+        setCategoryName("");
+        await queryClient.invalidateQueries({ queryKey: ["categories"] });
+      } else {
+        await masterDataService.createBrand({ name, description: "" });
+        setBrandName("");
+        await queryClient.invalidateQueries({ queryKey: ["brands"] });
+      }
+      setCatalogMessage(`${kind === "category" ? "Category" : "Brand"} added and available for products.`);
+    } catch (error) {
+      setCatalogError((error as { response?: { data?: { message?: string } } })?.response?.data?.message ?? `Could not add this ${kind}. It may already exist.`);
+    } finally {
+      setSavingCatalog(false);
+    }
+  };
+
   return (
-    <ProtectedRoute roles={["ADMIN"]}>
+    <ProtectedRoute>
     <div className="space-y-6 max-w-3xl">
       <div className="border-b border-border/40 pb-4">
         <h1 className="text-xl font-bold tracking-tight text-foreground md:text-2xl">
-          System & Workspace Settings
+          System & Account Settings
         </h1>
         <p className="mt-1 text-xs text-muted-foreground">
           Configure terminal interface parameters, default thresholds, and operational telemetry.
         </p>
       </div>
 
-      <form onSubmit={handleSave} className="space-y-6">
-        <section className="rounded-lg border border-border/50 bg-card/60 p-4">
+      <div className="space-y-6">
+        {isAdmin && <section className="rounded-lg border border-border/50 bg-card/60 p-4">
           <div className="flex items-center gap-2"><Shield className="h-4 w-4 text-muted-foreground" /><div><h2 className="text-sm font-semibold text-foreground">Team Access</h2><p className="text-xs text-muted-foreground">Create new MANAGER and STAFF accounts. Existing accounts cannot be re-assigned here; all users sign in at the same StockFlow login page.</p></div></div>
           <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
             <label className="text-xs text-muted-foreground">Username<input required minLength={3} maxLength={50} autoComplete="off" value={account.username} onChange={(e) => setAccount({ ...account, username: e.target.value })} className={`${FIELD} mt-1 w-full`} /></label>
@@ -94,6 +157,38 @@ export default function SettingsPage() {
           {accountMessage && <p role="status" className="mt-3 text-xs text-emerald-400">{accountMessage}</p>}
           {accountError && <p role="alert" className="mt-3 text-xs text-rose-400">{accountError}</p>}
           <button type="button" disabled={creatingAccount || !account.username || !account.email || !account.password || roleMismatchUsername === account.username} onClick={() => void createAccount()} className={`${BUTTON_PRIMARY} mt-4 disabled:cursor-not-allowed disabled:opacity-50`}><UserPlus className="h-3.5 w-3.5" />{creatingAccount ? "Creating…" : roleMismatchUsername === account.username ? "Account already created" : "Create account"}</button>
+        </section>}
+        {canManageCatalog && <section className="rounded-lg border border-border/50 bg-card/60 p-4">
+          <div className="mb-4"><h2 className="text-sm font-semibold text-foreground">Product Categories & Brands</h2><p className="text-xs text-muted-foreground">Add the categories and brands used by your inventory. These options appear in the product form.</p></div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <form onSubmit={(event) => void addCatalogItem("category", event)} className="space-y-2">
+              <label className="block text-xs text-muted-foreground">New category<input required maxLength={100} value={categoryName} onChange={(event) => setCategoryName(event.target.value)} placeholder="e.g. Bakery & Prepared Foods" className={`${FIELD} mt-1 w-full`} /></label>
+              <button type="submit" disabled={savingCatalog || !categoryName.trim()} className={`${BUTTON_PRIMARY} disabled:opacity-50`}>{savingCatalog ? "Adding…" : "Add category"}</button>
+            </form>
+            <form onSubmit={(event) => void addCatalogItem("brand", event)} className="space-y-2">
+              <label className="block text-xs text-muted-foreground">New brand<input required maxLength={100} value={brandName} onChange={(event) => setBrandName(event.target.value)} placeholder="e.g. Acme Foods" className={`${FIELD} mt-1 w-full`} /></label>
+              <button type="submit" disabled={savingCatalog || !brandName.trim()} className={`${BUTTON_PRIMARY} disabled:opacity-50`}>{savingCatalog ? "Adding…" : "Add brand"}</button>
+            </form>
+          </div>
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 text-xs">
+            <div><p className="mb-1 font-medium text-foreground">Categories ({categoriesQuery.data?.length ?? 0})</p><p className="text-muted-foreground">{categoriesQuery.data?.map((item) => item.name).join(" · ") || "Loading categories…"}</p></div>
+            <div><p className="mb-1 font-medium text-foreground">Brands ({brandsQuery.data?.length ?? 0})</p><p className="text-muted-foreground">{brandsQuery.data?.map((item) => item.name).join(" · ") || "Loading brands…"}</p></div>
+          </div>
+          {catalogMessage && <p role="status" className="mt-3 text-xs text-emerald-400">{catalogMessage}</p>}
+          {catalogError && <p role="alert" className="mt-3 text-xs text-rose-400">{catalogError}</p>}
+        </section>}
+        <section className="rounded-lg border border-border/50 bg-card/60 p-4">
+          <div className="flex items-center gap-2"><KeyRound className="h-4 w-4 text-muted-foreground" /><div><h2 className="text-sm font-semibold text-foreground">Change password</h2><p className="text-xs text-muted-foreground">Use your current password to set a new one. You’ll need to sign in again afterward.</p></div></div>
+          <form onSubmit={(event) => void changePassword(event)} className="mt-4 space-y-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <label className="text-xs text-muted-foreground sm:col-span-2">Current password<input required type="password" autoComplete="current-password" value={passwords.current} onChange={(event) => setPasswords({ ...passwords, current: event.target.value })} className={`${FIELD} mt-1 w-full`} /></label>
+              <label className="text-xs text-muted-foreground">New password<input required minLength={12} maxLength={72} type="password" autoComplete="new-password" value={passwords.next} onChange={(event) => setPasswords({ ...passwords, next: event.target.value })} className={`${FIELD} mt-1 w-full`} /><span className="mt-1 block text-[10px]">Use 12 to 72 characters.</span></label>
+              <label className="text-xs text-muted-foreground">Confirm new password<input required minLength={12} maxLength={72} type="password" autoComplete="new-password" value={passwords.confirm} onChange={(event) => setPasswords({ ...passwords, confirm: event.target.value })} className={`${FIELD} mt-1 w-full`} /></label>
+            </div>
+            {passwordMessage && <p role="status" className="text-xs text-emerald-400">{passwordMessage}</p>}
+            {passwordError && <p role="alert" className="text-xs text-rose-400">{passwordError}</p>}
+            <button type="submit" disabled={changingPassword || !passwords.current || !passwords.next || !passwords.confirm} className={`${BUTTON_PRIMARY} disabled:cursor-not-allowed disabled:opacity-50`}><KeyRound className="h-3.5 w-3.5" />{changingPassword ? "Changing…" : "Change password"}</button>
+          </form>
         </section>
         {/* Appearance & Theme */}
         <div className="rounded-lg border border-border/50 bg-card/60 p-4">
@@ -192,7 +287,7 @@ export default function SettingsPage() {
         </div>
 
         <div className="flex items-center gap-3">
-          <button type="submit" className={BUTTON_PRIMARY}>
+          <button type="button" onClick={handleSave} className={BUTTON_PRIMARY}>
             {saved ? (
               <>
                 <Check className="h-3.5 w-3.5 text-emerald-400" />
@@ -200,13 +295,13 @@ export default function SettingsPage() {
               </>
             ) : (
               <>
-                <Save className="h-3.5 w-3.5" />
-                <span>Save Changes</span>
+            <Save className="h-3.5 w-3.5" />
+            <span>Save Changes</span>
               </>
             )}
           </button>
         </div>
-      </form>
+      </div>
     </div>
     </ProtectedRoute>
   );

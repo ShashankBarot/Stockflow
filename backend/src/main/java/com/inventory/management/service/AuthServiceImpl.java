@@ -2,6 +2,7 @@ package com.inventory.management.service;
 
 import com.inventory.management.dto.request.LoginRequest;
 import com.inventory.management.dto.request.RegisterRequest;
+import com.inventory.management.dto.request.ChangePasswordRequest;
 import com.inventory.management.dto.response.ApiResponse;
 import com.inventory.management.dto.response.AuthResponse;
 import com.inventory.management.dto.response.UserResponse;
@@ -88,6 +89,22 @@ public class AuthServiceImpl implements AuthService {
         UserDetails principal = (UserDetails) authentication.getPrincipal();
         User user = users.findByUsername(principal.getUsername()).orElseThrow();
         return ApiResponse.ok(UserResponse.from(user));
+    }
+
+    @Override
+    @Transactional
+    public ApiResponse<?> changePassword(Authentication authentication, ChangePasswordRequest request) {
+        UserDetails principal = (UserDetails) authentication.getPrincipal();
+        User user = users.findByUsername(principal.getUsername()).orElseThrow();
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPasswordHash())) {
+            throw new BadCredentialsException("Current password is incorrect");
+        }
+        if (passwordEncoder.matches(request.getNewPassword(), user.getPasswordHash())) {
+            throw new IllegalArgumentException("New password must be different from the current password");
+        }
+        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        tokens.revokeForUser(user);
+        return ApiResponse.ok("Password changed. Sign in again with your new password.", null);
     }
 
     @Override

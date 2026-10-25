@@ -22,4 +22,8 @@ export const masterDataService = {
     const response = await axiosInstance.get("/brands", { params: { page: 0, size: 100 } });
     return unwrapPage(response);
   },
+  createCategory: async (data: { name: string; description?: string }): Promise<CatalogOption> =>
+    (await axiosInstance.post<{ data: CatalogOption }>("/categories", data)).data.data,
+  createBrand: async (data: { name: string; description?: string }): Promise<CatalogOption> =>
+    (await axiosInstance.post<{ data: CatalogOption }>("/brands", data)).data.data,
 };

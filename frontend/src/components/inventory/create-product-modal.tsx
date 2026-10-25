@@ -176,7 +176,7 @@ export function CreateProductModal({
 
           {!categoriesQuery.isLoading && !brandsQuery.isLoading && (categories.length === 0 || brands.length === 0) && (
             <p className="rounded-md border border-amber-500/20 bg-amber-500/[0.06] p-2.5 text-xs leading-relaxed text-amber-200/90">
-              Add at least one category and one brand before registering products. You can create them through the Categories and Brands API endpoints.
+              Add at least one category and one brand before registering products. ADMIN and MANAGER users can add them in Settings → Product Categories &amp; Brands.
             </p>
           )}
 

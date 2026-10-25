@@ -43,6 +43,7 @@ public class WarehouseServiceImpl implements WarehouseService {
         Warehouse warehouse = warehouses.save(Warehouse.builder()
                 .name(request.getName().trim())
                 .location(request.getLocation().trim())
+                .capacity(request.getCapacity())
                 .build());
         return ApiResponse.ok("Warehouse created", WarehouseResponse.from(warehouse));
     }
@@ -60,6 +61,7 @@ public class WarehouseServiceImpl implements WarehouseService {
 
         warehouse.setName(trimmedName);
         warehouse.setLocation(request.getLocation().trim());
+        warehouse.setCapacity(request.getCapacity());
         return ApiResponse.ok("Warehouse updated", WarehouseResponse.from(warehouses.save(warehouse)));
     }
 

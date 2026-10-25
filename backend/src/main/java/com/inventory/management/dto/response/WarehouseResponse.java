@@ -8,6 +8,7 @@ public record WarehouseResponse(
         Long id,
         String name,
         String location,
+        Integer capacity,
         LocalDateTime createdAt
 ) {
     public static WarehouseResponse from(Warehouse warehouse) {
@@ -15,6 +16,7 @@ public record WarehouseResponse(
                 warehouse.getId(),
                 warehouse.getName(),
                 warehouse.getLocation(),
+                warehouse.getCapacity(),
                 warehouse.getCreatedAt()
         );
     }

@@ -65,7 +65,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(async () => {
     const refreshToken = localStorage.getItem("refreshToken") ?? "";
-    try { await authService.logout(refreshToken); } catch { /* Clear credentials if the API is unavailable. */ } finally { clearSession(); }
+    // Start the API request while the access token is still available, then clear
+    // the browser session immediately so navigation never waits on the network.
+    const revokeRequest = authService.logout(refreshToken);
+    clearSession();
+    try { await revokeRequest; } catch { /* Local sign-out still completes if the API is unavailable. */ }
   }, [clearSession]);
 
   const register = useCallback(async (data: RegisterRequest) => authService.register(data), []);

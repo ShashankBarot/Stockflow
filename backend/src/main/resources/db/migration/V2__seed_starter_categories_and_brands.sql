@@ -1,0 +1,33 @@
+-- Starter catalog values let a new StockFlow installation create products immediately.
+-- Existing catalogs are preserved; each row is inserted only when its name is absent.
+INSERT INTO categories (name, description, created_at)
+SELECT 'General', 'General purpose inventory items', CURRENT_TIMESTAMP(6) FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM categories WHERE LOWER(name) = LOWER('General'))
+UNION ALL SELECT 'Food & Beverage', 'Food and beverage products', CURRENT_TIMESTAMP(6) FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM categories WHERE LOWER(name) = LOWER('Food & Beverage'))
+UNION ALL SELECT 'Ingredients & Raw Materials', 'Ingredients and production inputs', CURRENT_TIMESTAMP(6) FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM categories WHERE LOWER(name) = LOWER('Ingredients & Raw Materials'))
+UNION ALL SELECT 'Bakery & Prepared Foods', 'Bakery goods and prepared foods', CURRENT_TIMESTAMP(6) FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM categories WHERE LOWER(name) = LOWER('Bakery & Prepared Foods'))
+UNION ALL SELECT 'Packaging', 'Boxes, containers, labels, and packaging materials', CURRENT_TIMESTAMP(6) FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM categories WHERE LOWER(name) = LOWER('Packaging'))
+UNION ALL SELECT 'Electronics', 'Electronic devices and components', CURRENT_TIMESTAMP(6) FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM categories WHERE LOWER(name) = LOWER('Electronics'))
+UNION ALL SELECT 'Office Supplies', 'Stationery and office consumables', CURRENT_TIMESTAMP(6) FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM categories WHERE LOWER(name) = LOWER('Office Supplies'))
+UNION ALL SELECT 'Cleaning & Janitorial', 'Cleaning products and janitorial supplies', CURRENT_TIMESTAMP(6) FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM categories WHERE LOWER(name) = LOWER('Cleaning & Janitorial'))
+UNION ALL SELECT 'Safety & PPE', 'Safety equipment and personal protective equipment', CURRENT_TIMESTAMP(6) FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM categories WHERE LOWER(name) = LOWER('Safety & PPE'))
+UNION ALL SELECT 'Tools & Equipment', 'Tools and operational equipment', CURRENT_TIMESTAMP(6) FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM categories WHERE LOWER(name) = LOWER('Tools & Equipment'))
+UNION ALL SELECT 'Maintenance & Spare Parts', 'Replacement parts and maintenance supplies', CURRENT_TIMESTAMP(6) FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM categories WHERE LOWER(name) = LOWER('Maintenance & Spare Parts'))
+UNION ALL SELECT 'Finished Goods', 'Completed goods ready for sale or distribution', CURRENT_TIMESTAMP(6) FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM categories WHERE LOWER(name) = LOWER('Finished Goods'));
+
+INSERT INTO brands (name, description, created_at)
+SELECT 'Generic / Unbranded', 'Use for items without a specific manufacturer brand', CURRENT_TIMESTAMP(6) FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM brands WHERE LOWER(name) = LOWER('Generic / Unbranded'))
+UNION ALL SELECT 'Coca-Cola', 'Starter brand option', CURRENT_TIMESTAMP(6) FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM brands WHERE LOWER(name) = LOWER('Coca-Cola'))
+UNION ALL SELECT 'PepsiCo', 'Starter brand option', CURRENT_TIMESTAMP(6) FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM brands WHERE LOWER(name) = LOWER('PepsiCo'))
+UNION ALL SELECT 'Nestlé', 'Starter brand option', CURRENT_TIMESTAMP(6) FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM brands WHERE LOWER(name) = LOWER('Nestlé'))
+UNION ALL SELECT 'Kraft Heinz', 'Starter brand option', CURRENT_TIMESTAMP(6) FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM brands WHERE LOWER(name) = LOWER('Kraft Heinz'))
+UNION ALL SELECT 'Barilla', 'Starter brand option', CURRENT_TIMESTAMP(6) FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM brands WHERE LOWER(name) = LOWER('Barilla'))
+UNION ALL SELECT 'General Mills', 'Starter brand option', CURRENT_TIMESTAMP(6) FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM brands WHERE LOWER(name) = LOWER('General Mills'))
+UNION ALL SELECT '3M', 'Starter brand option', CURRENT_TIMESTAMP(6) FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM brands WHERE LOWER(name) = LOWER('3M'))
+UNION ALL SELECT 'Bosch', 'Starter brand option', CURRENT_TIMESTAMP(6) FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM brands WHERE LOWER(name) = LOWER('Bosch'))
+UNION ALL SELECT 'Samsung', 'Starter brand option', CURRENT_TIMESTAMP(6) FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM brands WHERE LOWER(name) = LOWER('Samsung'))
+UNION ALL SELECT 'Dell', 'Starter brand option', CURRENT_TIMESTAMP(6) FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM brands WHERE LOWER(name) = LOWER('Dell'))
+UNION ALL SELECT 'HP', 'Starter brand option', CURRENT_TIMESTAMP(6) FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM brands WHERE LOWER(name) = LOWER('HP'))
+UNION ALL SELECT 'Lenovo', 'Starter brand option', CURRENT_TIMESTAMP(6) FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM brands WHERE LOWER(name) = LOWER('Lenovo'))
+UNION ALL SELECT 'Sony', 'Starter brand option', CURRENT_TIMESTAMP(6) FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM brands WHERE LOWER(name) = LOWER('Sony'))
+UNION ALL SELECT 'Panasonic', 'Starter brand option', CURRENT_TIMESTAMP(6) FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM brands WHERE LOWER(name) = LOWER('Panasonic'))
+UNION ALL SELECT 'Makita', 'Starter brand option', CURRENT_TIMESTAMP(6) FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM brands WHERE LOWER(name) = LOWER('Makita'));

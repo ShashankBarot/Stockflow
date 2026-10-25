@@ -1,9 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { Plus, Warehouse, MapPin, X, AlertCircle } from "lucide-react";
+import { Plus, Warehouse, MapPin, X, AlertCircle, Pencil, Trash2 } from "lucide-react";
 import { BUTTON, BUTTON_PRIMARY, FIELD } from "@/components/ui/control-classes";
-import { useWarehouses, useCreateWarehouse } from "@/hooks/useWarehouses";
+import { useWarehouses, useCreateWarehouse, useUpdateWarehouse, useDeleteWarehouse } from "@/hooks/useWarehouses";
 import { useInventory } from "@/hooks/useInventory";
 import type { Warehouse as WarehouseType } from "@/types";
 import { useAuth } from "@/hooks/useAuth";
@@ -12,11 +12,15 @@ export default function WarehousesPage() {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [name, setName] = React.useState("");
   const [location, setLocation] = React.useState("");
+  const [capacity, setCapacity] = React.useState("");
+  const [editingWarehouse, setEditingWarehouse] = React.useState<WarehouseType | null>(null);
   const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
 
   const { data: whData, isLoading, isError: isWarehouseError, refetch } = useWarehouses();
   const { data: inventoryData, isLoading: isInventoryLoading, isError: isInventoryError } = useInventory({ page: 0, size: 500 });
   const createWh = useCreateWarehouse();
+  const updateWh = useUpdateWarehouse();
+  const deleteWh = useDeleteWarehouse();
   const { user } = useAuth();
   const role = typeof user?.role === "string" ? user.role : user?.role.name;
   const canManageFacilities = role === "ADMIN" || role === "MANAGER";
@@ -25,17 +29,16 @@ export default function WarehousesPage() {
 
   // Compute facility metrics
   const facilityStats = React.useMemo(() => {
-    const map = new Map<number, { totalQty: number; skuIds: Set<number>; capacity: number }>();
+    const map = new Map<number, { totalQty: number; skuIds: Set<number> }>();
     if (inventoryData?.data) {
       for (const item of inventoryData.data) {
         const whId = item.warehouse?.id;
         if (whId) {
-          const prev = map.get(whId) || { totalQty: 0, skuIds: new Set<number>(), capacity: 0 };
+          const prev = map.get(whId) || { totalQty: 0, skuIds: new Set<number>() };
           if (item.product?.id) prev.skuIds.add(item.product.id);
           map.set(whId, {
             totalQty: prev.totalQty + item.quantity,
             skuIds: prev.skuIds,
-            capacity: prev.capacity + (item.maxCapacity ?? 0),
           });
         }
       }
@@ -51,14 +54,46 @@ export default function WarehousesPage() {
     }
 
     try {
-      await createWh.mutateAsync({ name, location });
+      const request = { name: name.trim(), location: location.trim(), capacity: capacity ? Number(capacity) : null };
+      if (editingWarehouse) await updateWh.mutateAsync({ id: editingWarehouse.id, data: request });
+      else await createWh.mutateAsync(request);
       setName("");
       setLocation("");
+      setCapacity("");
+      setEditingWarehouse(null);
       setIsModalOpen(false);
       refetch();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to register warehouse";
       setErrorMsg(msg);
+    }
+  };
+
+  const openCreateModal = () => {
+    setEditingWarehouse(null);
+    setName("");
+    setLocation("");
+    setCapacity("");
+    setErrorMsg(null);
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (warehouse: WarehouseType) => {
+    setEditingWarehouse(warehouse);
+    setName(warehouse.name);
+    setLocation(warehouse.location);
+    setCapacity(warehouse.capacity == null ? "" : String(warehouse.capacity));
+    setErrorMsg(null);
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = async (warehouse: WarehouseType) => {
+    if (!window.confirm(`Delete warehouse “${warehouse.name}”? Warehouses with stock or movement history cannot be deleted.`)) return;
+    try {
+      await deleteWh.mutateAsync(warehouse.id);
+    } catch (error) {
+      const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      window.alert(message ?? "Could not delete this warehouse. It may still be referenced by inventory or movement history.");
     }
   };
 
@@ -76,7 +111,7 @@ export default function WarehousesPage() {
 
         {canManageFacilities && <button
           type="button"
-          onClick={() => setIsModalOpen(true)}
+          onClick={openCreateModal}
           className={BUTTON_PRIMARY}
         >
           <Plus className="h-3.5 w-3.5" />
@@ -94,9 +129,9 @@ export default function WarehousesPage() {
       ) : (
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         {warehouses.map((wh) => {
-          const stats = facilityStats.get(wh.id) || { totalQty: 0, skuIds: new Set<number>(), capacity: 0 };
-          const hasCapacity = stats.capacity > 0 && !isInventoryLoading && !isInventoryError;
-          const usagePercent = hasCapacity ? Math.min(100, Math.round((stats.totalQty / stats.capacity) * 100)) : 0;
+          const stats = facilityStats.get(wh.id) || { totalQty: 0, skuIds: new Set<number>() };
+          const hasCapacity = (wh.capacity ?? 0) > 0 && !isInventoryLoading && !isInventoryError;
+          const usagePercent = hasCapacity ? Math.min(100, Math.round((stats.totalQty / wh.capacity!) * 100)) : 0;
 
           return (
             <div
@@ -104,7 +139,7 @@ export default function WarehousesPage() {
               className="flex flex-col justify-between rounded-lg border border-border/50 bg-card/60 p-4 transition-colors hover:border-border/80"
             >
               <div>
-                <div className="flex items-start justify-between">
+                <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <div className="flex h-8 w-8 items-center justify-center rounded-md bg-foreground/[0.04] border border-border/40 text-foreground">
                       <Warehouse className="h-4 w-4" />
@@ -117,6 +152,10 @@ export default function WarehousesPage() {
                       </div>
                     </div>
                   </div>
+                  {(canManageFacilities || role === "ADMIN") && <div className="flex items-center gap-1">
+                    {canManageFacilities && <button type="button" onClick={() => openEditModal(wh)} aria-label={`Edit ${wh.name}`} title="Edit warehouse" className="rounded p-1.5 text-muted-foreground hover:bg-foreground/[0.06] hover:text-foreground"><Pencil className="h-3.5 w-3.5" /></button>}
+                    {role === "ADMIN" && <button type="button" disabled={deleteWh.isPending} onClick={() => void handleDelete(wh)} aria-label={`Delete ${wh.name}`} title="Delete warehouse" className="rounded p-1.5 text-muted-foreground hover:bg-rose-500/10 hover:text-rose-400 disabled:opacity-50"><Trash2 className="h-3.5 w-3.5" /></button>}
+                  </div>}
                 </div>
 
                 {/* Utilization Gauge */}
@@ -128,7 +167,7 @@ export default function WarehousesPage() {
                   {hasCapacity && <div className="h-2 w-full overflow-hidden rounded-full bg-foreground/[0.05]"><div className={`h-full rounded-full transition-all ${usagePercent > 85 ? "bg-rose-500" : usagePercent > 70 ? "bg-amber-500" : "bg-foreground"}`} style={{ width: `${usagePercent}%` }} /></div>}
                   <div className="flex justify-between text-[10px] font-mono text-muted-foreground/60">
                     <span>{isInventoryLoading ? "Loading stock…" : isInventoryError ? "Inventory unavailable" : `${stats.totalQty.toLocaleString()} units`}</span>
-                    <span>{isInventoryLoading || isInventoryError ? "" : hasCapacity ? `Capacity ${stats.capacity.toLocaleString()}` : "Capacity not set"}</span>
+                    <span>{isInventoryLoading || isInventoryError ? "" : hasCapacity ? `Capacity ${wh.capacity!.toLocaleString()}` : wh.capacity ? "" : "Capacity not set"}</span>
                   </div>
                 </div>
               </div>
@@ -152,7 +191,7 @@ export default function WarehousesPage() {
           <div className="w-full max-w-md rounded-lg border border-border/70 bg-card p-6 shadow-2xl">
             <div className="flex items-center justify-between border-b border-border/40 pb-3">
               <h2 className="text-sm font-semibold tracking-tight text-foreground">
-                Add Distribution Facility
+                {editingWarehouse ? "Edit Distribution Facility" : "Add Distribution Facility"}
               </h2>
               <button
                 type="button"
@@ -170,6 +209,7 @@ export default function WarehousesPage() {
                 </label>
                 <input
                   type="text"
+                  maxLength={100}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. South Depository (DFW-3)"
@@ -184,12 +224,19 @@ export default function WarehousesPage() {
                 </label>
                 <input
                   type="text"
+                  maxLength={255}
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
                   placeholder="e.g. Dallas, TX"
                   className={`${FIELD} w-full`}
                   required
                 />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-medium text-foreground/80">Maximum warehouse capacity (units, optional)</label>
+                <input type="number" min="1" step="1" value={capacity} onChange={(e) => setCapacity(e.target.value)} placeholder="e.g. 5000" className={`${FIELD} w-full font-mono`} />
+                <p className="mt-1 text-[10px] text-muted-foreground">Set the warehouse’s total unit limit. Leave blank if capacity is unknown.</p>
               </div>
 
               {errorMsg && (
@@ -205,10 +252,10 @@ export default function WarehousesPage() {
                 </button>
                 <button
                   type="submit"
-                  disabled={createWh.isPending}
+                  disabled={createWh.isPending || updateWh.isPending}
                   className={BUTTON_PRIMARY}
                 >
-                  {createWh.isPending ? "Connecting Facility..." : "Register Facility"}
+                  {createWh.isPending || updateWh.isPending ? "Saving…" : editingWarehouse ? "Save Changes" : "Register Facility"}
                 </button>
               </div>
             </form>
