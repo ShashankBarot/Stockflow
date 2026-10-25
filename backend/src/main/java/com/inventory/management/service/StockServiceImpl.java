@@ -1,6 +1,7 @@
 package com.inventory.management.service;
 
 import com.inventory.management.entity.Inventory;
+import com.inventory.management.entity.Notification.NotificationType;
 import com.inventory.management.entity.Product;
 import com.inventory.management.entity.StockMovement;
 import com.inventory.management.entity.StockMovement.MovementType;
@@ -26,6 +27,7 @@ public class StockServiceImpl implements StockService {
     private final ProductRepository productRepository;
     private final WarehouseRepository warehouseRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -50,6 +52,7 @@ public class StockServiceImpl implements StockService {
         int newQuantity = oldQuantity + quantity;
         inventory.setQuantity(newQuantity);
         inventoryRepository.save(inventory);
+        notifyIfLowStock(product, warehouse, inventory, oldQuantity, newQuantity);
 
         StockMovement movement = StockMovement.builder()
                 .product(product)
@@ -86,6 +89,7 @@ public class StockServiceImpl implements StockService {
         int newQuantity = currentQuantity - quantity;
         inventory.setQuantity(newQuantity);
         inventoryRepository.save(inventory);
+        notifyIfLowStock(product, warehouse, inventory, currentQuantity, newQuantity);
 
         StockMovement movement = StockMovement.builder()
                 .product(product)
@@ -119,8 +123,10 @@ public class StockServiceImpl implements StockService {
                         .minThreshold(0)
                         .build());
 
+        int oldQuantity = inventory.getQuantity() != null ? inventory.getQuantity() : 0;
         inventory.setQuantity(newQuantity);
         inventoryRepository.save(inventory);
+        notifyIfLowStock(product, warehouse, inventory, oldQuantity, newQuantity);
 
         StockMovement movement = StockMovement.builder()
                 .product(product)
@@ -132,6 +138,62 @@ public class StockServiceImpl implements StockService {
                 .notes(notes)
                 .build();
 
+        return movementRepository.save(movement);
+    }
+
+    @Override
+    @Transactional
+    public StockMovement transferStock(Long productId, Long sourceWarehouseId, Long destinationWarehouseId, Integer quantity, String referenceNumber, Long performedByUserId, String notes) {
+        if (quantity == null || quantity <= 0) {
+            throw new IllegalArgumentException("Transfer quantity must be positive");
+        }
+        if (sourceWarehouseId == null || destinationWarehouseId == null) {
+            throw new IllegalArgumentException("Source and destination warehouse IDs are required");
+        }
+        if (sourceWarehouseId.equals(destinationWarehouseId)) {
+            throw new IllegalArgumentException("Source and destination warehouses must be different");
+        }
+
+        Product product = findProductOrThrow(productId);
+        Warehouse source = findWarehouseOrThrow(sourceWarehouseId);
+        Warehouse destination = findWarehouseOrThrow(destinationWarehouseId);
+        User user = findUserOrThrow(performedByUserId);
+
+        Inventory sourceInventory = inventoryRepository.findByProductIdAndWarehouseIdForUpdate(productId, sourceWarehouseId)
+                .orElseThrow(() -> new InsufficientStockException(productId, sourceWarehouseId, quantity, 0));
+        int sourceQuantity = sourceInventory.getQuantity() != null ? sourceInventory.getQuantity() : 0;
+        if (quantity > sourceQuantity) {
+            throw new InsufficientStockException(productId, sourceWarehouseId, quantity, sourceQuantity);
+        }
+
+        Inventory destinationInventory = inventoryRepository.findByProductIdAndWarehouseIdForUpdate(productId, destinationWarehouseId)
+                .orElseGet(() -> Inventory.builder()
+                        .product(product)
+                        .warehouse(destination)
+                        .quantity(0)
+                        .minThreshold(0)
+                        .build());
+
+        int destinationQuantity = destinationInventory.getQuantity() != null ? destinationInventory.getQuantity() : 0;
+        int newSourceQuantity = sourceQuantity - quantity;
+        int newDestinationQuantity = destinationQuantity + quantity;
+        sourceInventory.setQuantity(newSourceQuantity);
+        destinationInventory.setQuantity(newDestinationQuantity);
+        inventoryRepository.save(sourceInventory);
+        inventoryRepository.save(destinationInventory);
+        notifyIfLowStock(product, source, sourceInventory, sourceQuantity, newSourceQuantity);
+        notifyIfLowStock(product, destination, destinationInventory, destinationQuantity, newDestinationQuantity);
+
+        StockMovement movement = StockMovement.builder()
+                .product(product)
+                .warehouse(source)
+                .destinationWarehouse(destination)
+                .type(MovementType.TRANSFER)
+                .quantity(quantity)
+                .referenceNumber(referenceNumber)
+                .performedBy(user)
+                .notes((notes == null ? "" : notes + " — ") + "Transferred to warehouse " + destination.getId())
+                .build();
         return movementRepository.save(movement);
     }
 
@@ -158,5 +220,16 @@ public class StockServiceImpl implements StockService {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
     }
-}
 
+    private void notifyIfLowStock(Product product, Warehouse warehouse, Inventory inventory,
+                                  int oldQuantity, int newQuantity) {
+        int threshold = inventory.getMinThreshold() != null ? inventory.getMinThreshold() : 0;
+        if (oldQuantity > threshold && newQuantity <= threshold) {
+            String title = "Low stock: " + product.getName();
+            String message = product.getName() + " (" + product.getSku() + ") at " + warehouse.getName()
+                    + " has " + newQuantity + " units remaining. Minimum threshold: " + threshold + ".";
+            userRepository.findAll().forEach(user -> notificationService.createNotification(
+                    title, message, NotificationType.LOW_STOCK, user.getId()));
+        }
+    }
+}

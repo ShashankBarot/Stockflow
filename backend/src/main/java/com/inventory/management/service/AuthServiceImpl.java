@@ -53,7 +53,12 @@ public class AuthServiceImpl implements AuthService {
         String email = request.getEmail().trim().toLowerCase(Locale.ROOT);
         if (users.existsByUsername(username)) throw new IllegalArgumentException("Username is already in use");
         if (users.existsByEmail(email)) throw new IllegalArgumentException("Email is already in use");
-        Role role = roles.findByName("STAFF").orElseThrow(() -> new IllegalStateException("Default STAFF role is missing"));
+        String roleName = request.getRole() == null || request.getRole().isBlank()
+                ? "STAFF" : request.getRole().trim().toUpperCase(Locale.ROOT);
+        if (!roleName.equals("STAFF") && !roleName.equals("MANAGER")) {
+            throw new IllegalArgumentException("Only MANAGER or STAFF accounts can be created");
+        }
+        Role role = roles.findByName(roleName).orElseThrow(() -> new IllegalStateException(roleName + " role is missing"));
         User user = users.save(User.builder().username(username)
                 .email(email)
                 .passwordHash(passwordEncoder.encode(request.getPassword())).role(role).build());

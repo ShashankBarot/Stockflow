@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { TrendingUp, AlertTriangle, AlertOctagon, PackageCheck } from "lucide-react";
 import { LiveFigure } from "@/components/ui/live-figure";
 
 export interface MetricItem {
@@ -16,53 +15,10 @@ export interface MetricItem {
 }
 
 interface MetricsStripProps {
-  metrics?: MetricItem[];
+  metrics: MetricItem[];
 }
 
-const DEFAULT_METRICS: MetricItem[] = [
-  {
-    id: "total_val",
-    label: "Total Valuation",
-    value: 128450,
-    format: "currency",
-    change: 3.4,
-    changeLabel: "vs last month",
-    sentiment: "positive",
-    icon: <TrendingUp className="h-3.5 w-3.5" />,
-  },
-  {
-    id: "units_stock",
-    label: "Units in Stock",
-    value: 4821,
-    format: "integer",
-    change: 1.8,
-    changeLabel: "net inflow",
-    sentiment: "positive",
-    icon: <PackageCheck className="h-3.5 w-3.5" />,
-  },
-  {
-    id: "low_stock",
-    label: "Low Stock Items",
-    value: 14,
-    format: "integer",
-    change: -2,
-    changeLabel: "reorder needed",
-    sentiment: "warning",
-    icon: <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />,
-  },
-  {
-    id: "out_of_stock",
-    label: "Depleted (Zero Qty)",
-    value: 4,
-    format: "integer",
-    change: 1,
-    changeLabel: "stockouts",
-    sentiment: "danger",
-    icon: <AlertOctagon className="h-3.5 w-3.5 text-rose-500" />,
-  },
-];
-
-export function MetricsStrip({ metrics = DEFAULT_METRICS }: MetricsStripProps) {
+export function MetricsStrip({ metrics }: MetricsStripProps) {
   return (
     <section aria-label="Inventory metrics" className="grid grid-cols-2 border-y border-white/[0.07] py-3 lg:grid-cols-4">
       {metrics.map((m) => {

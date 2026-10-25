@@ -2,9 +2,9 @@
 
 import * as React from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Edit3, ArrowUpDown, History, Warehouse, AlertCircle } from "lucide-react";
+import { ArrowLeft, ArrowUpDown, History, Warehouse, AlertCircle } from "lucide-react";
 import { LiveFigure } from "@/components/ui/live-figure";
-import { BUTTON, BUTTON_PRIMARY, SURFACE } from "@/components/ui/control-classes";
+import { BUTTON, BUTTON_PRIMARY } from "@/components/ui/control-classes";
 import { useProduct, useInventory } from "@/hooks/useInventory";
 import { useMovements } from "@/hooks/useMovements";
 import { AdjustStockDrawer } from "@/components/inventory/adjust-stock-drawer";
@@ -17,31 +17,23 @@ export default function ProductDetailPage() {
 
   const [isAdjustOpen, setIsAdjustOpen] = React.useState(false);
 
-  const { data: productData, isLoading: isProdLoading } = useProduct(productId);
-  const { data: inventoryData } = useInventory();
-  const { data: movementsData } = useMovements();
+  const { data: productData, isLoading: isProdLoading, isError: isProductError } = useProduct(productId);
+  const { data: inventoryData, isLoading: isInventoryLoading, isError: isInventoryError } = useInventory({ productId, page: 0, size: 500 });
+  const { data: movementsData, isLoading: isMovementsLoading, isError: isMovementsError } = useMovements({ productId, page: 0, size: 500 });
 
-  const product: Product | undefined = productData || {
-    id: productId,
-    sku: `SKU-${productId || 9021}`,
-    name: "Industrial Micro-Sensor 24V",
-    description: "High-precision telemetry sensor for industrial automation and machinery.",
-    category: "Sensors",
-    basePrice: 145.0,
-    createdAt: new Date().toISOString(),
-  };
+  const product: Product | undefined = productData;
 
   // Filter inventory records for this product
-  const productInventories = (inventoryData?.data ?? []).filter(
-    (inv) => inv.product?.id === productId
-  );
+  const productInventories = inventoryData?.data ?? [];
 
-  const totalStock = productInventories.reduce((acc, inv) => acc + inv.quantity, 0) || 45;
+  const totalStock = productInventories.reduce((acc, inv) => acc + inv.quantity, 0);
+  const reorderThreshold = productInventories.reduce((acc, inv) => acc + (inv.minThreshold ?? 0), 0);
 
   // Filter movements for this product
-  const movements = (movementsData?.data ?? []).filter(
-    (m) => m.product?.id === productId
-  );
+  const movements = movementsData?.data ?? [];
+
+  if (isProdLoading) return <div className="py-16 text-center text-sm text-muted-foreground">Loading product record…</div>;
+  if (isProductError || !product) return <div className="mx-auto max-w-lg rounded-lg border border-border/50 bg-card/60 p-6 text-center"><AlertCircle className="mx-auto h-5 w-5 text-amber-400" /><h1 className="mt-3 text-sm font-semibold text-foreground">Product not found</h1><p className="mt-1 text-xs text-muted-foreground">This product could not be loaded from StockFlow.</p><button type="button" onClick={() => router.push("/inventory")} className={`${BUTTON} mt-4`}><ArrowLeft className="h-3.5 w-3.5" />Back to inventory</button></div>;
 
   return (
     <div className="space-y-6">
@@ -65,7 +57,7 @@ export default function ProductDetailPage() {
               </span>
             </div>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              Category: {product?.category || "General"} · Base Price: ${product?.basePrice?.toFixed(2)}
+                  Category: {product?.category || "—"} · Base Price: ${product?.basePrice?.toFixed(2)}
             </p>
           </div>
         </div>
@@ -87,15 +79,15 @@ export default function ProductDetailPage() {
         <div className="rounded-lg border border-border/50 bg-card/60 p-4">
           <span className="text-xs text-muted-foreground">Total In Stock</span>
           <p className="mt-1 text-2xl font-bold font-mono text-foreground">
-            <LiveFigure value={totalStock} />
+            {isInventoryLoading || isInventoryError ? "—" : <LiveFigure value={totalStock} />}
           </p>
-          <span className="text-[11px] font-mono text-emerald-400">Available across sites</span>
+          <span className="text-[11px] font-mono text-muted-foreground">Across registered facilities</span>
         </div>
 
         <div className="rounded-lg border border-border/50 bg-card/60 p-4">
           <span className="text-xs text-muted-foreground">Asset Valuation</span>
           <p className="mt-1 text-2xl font-bold font-mono text-foreground">
-            <LiveFigure value={totalStock * (product?.basePrice || 0)} format="currency" />
+            {isInventoryLoading || isInventoryError ? "—" : <LiveFigure value={totalStock * product.basePrice} format="currency" />}
           </p>
           <span className="text-[11px] font-mono text-muted-foreground/70">At current base price</span>
         </div>
@@ -103,17 +95,17 @@ export default function ProductDetailPage() {
         <div className="rounded-lg border border-border/50 bg-card/60 p-4">
           <span className="text-xs text-muted-foreground">Reorder Threshold</span>
           <p className="mt-1 text-2xl font-bold font-mono text-amber-400">
-            15 units
+            {isInventoryLoading || isInventoryError ? "—" : `${reorderThreshold} units`}
           </p>
-          <span className="text-[11px] font-mono text-muted-foreground/70">Safety stock level</span>
+          <span className="text-[11px] font-mono text-muted-foreground/70">Combined minimum across facilities</span>
         </div>
 
         <div className="rounded-lg border border-border/50 bg-card/60 p-4">
-          <span className="text-xs text-muted-foreground">Turnover Ratio</span>
+          <span className="text-xs text-muted-foreground">Movement Records</span>
           <p className="mt-1 text-2xl font-bold font-mono text-foreground">
-            4.2x
+            {isMovementsLoading || isMovementsError ? "—" : movementsData?.totalElements ?? movements.length}
           </p>
-          <span className="text-[11px] font-mono text-emerald-400">High velocity</span>
+          <span className="text-[11px] font-mono text-muted-foreground/70">Recorded for this product</span>
         </div>
       </div>
 
@@ -136,13 +128,13 @@ export default function ProductDetailPage() {
                 </div>
                 <div className="text-right font-mono">
                   <span className="text-sm font-semibold text-foreground">{inv.quantity}</span>
-                  <span className="text-muted-foreground"> / max {inv.maxCapacity}</span>
+                  {inv.maxCapacity != null && <span className="text-muted-foreground"> / max {inv.maxCapacity}</span>}
                 </div>
               </div>
             ))
           ) : (
             <div className="py-6 text-center text-xs text-muted-foreground">
-              No facility splits recorded yet. Default inventory allocated to Central Logistics Hub.
+              {isInventoryLoading ? "Loading facility records…" : isInventoryError ? "Facility allocations could not be loaded." : "No inventory is currently assigned to a facility."}
             </div>
           )}
         </div>
@@ -170,7 +162,11 @@ export default function ProductDetailPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border/30 font-mono text-[11px]">
-              {movements.length > 0 ? (
+              {isMovementsLoading ? (
+                <tr><td colSpan={6} className="py-6 text-center text-muted-foreground">Loading movement history…</td></tr>
+              ) : isMovementsError ? (
+                <tr><td colSpan={6} role="alert" className="py-6 text-center text-rose-300">Movement history could not be loaded.</td></tr>
+              ) : movements.length > 0 ? (
                 movements.map((m) => (
                   <tr key={m.id} className="hover:bg-foreground/[0.02]">
                     <td className="py-2 pl-2 font-medium text-foreground">{m.referenceNumber}</td>

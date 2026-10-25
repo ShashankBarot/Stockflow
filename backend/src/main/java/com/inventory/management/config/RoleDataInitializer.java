@@ -21,6 +21,7 @@ public class RoleDataInitializer {
     @Value("${app.bootstrap-admin.username:}") private String adminUsername;
     @Value("${app.bootstrap-admin.email:}") private String adminEmail;
     @Value("${app.bootstrap-admin.password:}") private String adminPassword;
+    @Value("${app.bootstrap-admin.required:false}") private boolean bootstrapAdminRequired;
 
     @Bean
     @DependsOn("entityManagerFactory")
@@ -36,8 +37,14 @@ public class RoleDataInitializer {
                     users.save(existing);
                 }
             }
-            if (!adminUsername.isBlank() && !adminEmail.isBlank() && !adminPassword.isBlank()
-                    && users.count() == 0) {
+            if (users.count() == 0 && bootstrapAdminRequired
+                    && (adminUsername.isBlank() || adminEmail.isBlank() || adminPassword.isBlank())) {
+                throw new IllegalStateException("A first administrator must be configured before starting with an empty production database");
+            }
+            if (users.count() == 0 && !adminUsername.isBlank() && !adminEmail.isBlank() && !adminPassword.isBlank()) {
+                if (adminPassword.length() < 12) {
+                    throw new IllegalStateException("INITIAL_ADMIN_PASSWORD must contain at least 12 characters");
+                }
                 Role admin = roles.findByName("ADMIN").orElseThrow();
                 users.save(User.builder().username(adminUsername.trim()).email(adminEmail.trim().toLowerCase())
                         .passwordHash(passwordEncoder.encode(adminPassword)).role(admin).build());

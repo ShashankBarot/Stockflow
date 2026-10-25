@@ -9,6 +9,7 @@ public record StockMovementResponse(
         Long id,
         ProductResponse product,
         WarehouseResponse warehouse,
+        WarehouseResponse destinationWarehouse,
         MovementType type,
         Integer quantity,
         String referenceNumber,
@@ -21,6 +22,7 @@ public record StockMovementResponse(
                 movement.getId(),
                 movement.getProduct() != null ? ProductResponse.from(movement.getProduct()) : null,
                 movement.getWarehouse() != null ? WarehouseResponse.from(movement.getWarehouse()) : null,
+                movement.getDestinationWarehouse() != null ? WarehouseResponse.from(movement.getDestinationWarehouse()) : null,
                 movement.getType(),
                 movement.getQuantity(),
                 movement.getReferenceNumber(),
@@ -30,4 +32,3 @@ public record StockMovementResponse(
         );
     }
 }
-

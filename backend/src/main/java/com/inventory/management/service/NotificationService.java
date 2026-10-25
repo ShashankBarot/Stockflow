@@ -8,5 +8,7 @@ public interface NotificationService {
     void createNotification(String title, String message, NotificationType type, Long userId);
     ApiResponse<?> getUserNotifications(Long userId, Pageable pageable);
     ApiResponse<?> getUnreadNotifications(Long userId, Pageable pageable);
-    ApiResponse<?> markAsRead(Long notificationId);
+    ApiResponse<?> getUnreadCount(Long userId);
+    ApiResponse<?> markAsRead(Long notificationId, Long userId);
+    ApiResponse<?> markAllAsRead(Long userId);
 }

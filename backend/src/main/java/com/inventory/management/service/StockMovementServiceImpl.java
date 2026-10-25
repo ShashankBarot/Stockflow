@@ -56,6 +56,15 @@ public class StockMovementServiceImpl implements StockMovementService {
                     userId,
                     request.getNotes()
             );
+            case TRANSFER -> movement = stockService.transferStock(
+                    request.getProductId(),
+                    request.getWarehouseId(),
+                    request.getDestinationWarehouseId(),
+                    request.getQuantity(),
+                    request.getReferenceNumber(),
+                    userId,
+                    request.getNotes()
+            );
             default -> throw new IllegalArgumentException("Unsupported movement type: " + request.getType());
         }
 
@@ -68,13 +77,13 @@ public class StockMovementServiceImpl implements StockMovementService {
         Page<StockMovement> page;
 
         if (type != null) {
-            page = movementRepository.findByType(type, pageable);
+            page = movementRepository.findByTypeOrderByCreatedAtDescIdDesc(type, pageable);
         } else if (productId != null) {
-            page = movementRepository.findByProductId(productId, pageable);
+            page = movementRepository.findByProductIdOrderByCreatedAtDescIdDesc(productId, pageable);
         } else if (warehouseId != null) {
-            page = movementRepository.findByWarehouseId(warehouseId, pageable);
+            page = movementRepository.findByWarehouseIdOrderByCreatedAtDescIdDesc(warehouseId, pageable);
         } else {
-            page = movementRepository.findAll(pageable);
+            page = movementRepository.findAllByOrderByCreatedAtDescIdDesc(pageable);
         }
 
         return ApiResponse.ok(page.map(StockMovementResponse::from));
@@ -88,4 +97,3 @@ public class StockMovementServiceImpl implements StockMovementService {
         return ApiResponse.ok(StockMovementResponse.from(movement));
     }
 }
-

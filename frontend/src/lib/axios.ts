@@ -1,7 +1,8 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 
 const axiosInstance = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1",
+  // Same-origin API path is proxied by Next.js to the private Spring service.
+  baseURL: "/api/v1",
   headers: { "Content-Type": "application/json" },
   timeout: 30000,
 });

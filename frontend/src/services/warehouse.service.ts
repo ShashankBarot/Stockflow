@@ -3,7 +3,7 @@ import type { Warehouse, CreateWarehouseRequest, PaginatedResponse } from "@/typ
 
 export const warehouseService = {
   getWarehouses: async (): Promise<PaginatedResponse<Warehouse>> => {
-    const response = await axiosInstance.get("/warehouses");
+    const response = await axiosInstance.get("/warehouses", { params: { page: 0, size: 500 } });
     const payload = response.data;
     const inner = payload?.data;
     const items: Warehouse[] = Array.isArray(inner)

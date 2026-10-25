@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ArrowDownLeft, ArrowUpRight, ArrowLeftRight, SlidersHorizontal, RefreshCw, Download } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, ArrowLeftRight, RefreshCw } from "lucide-react";
 import { SegmentedControl, SegmentOption } from "@/components/ui/segmented-control";
 import { LiveFigure } from "@/components/ui/live-figure";
 import { BUTTON, FIELD } from "@/components/ui/control-classes";
@@ -18,85 +18,40 @@ const FILTER_OPTIONS: SegmentOption<FilterType>[] = [
   { value: "ADJUSTMENT", label: "Adjustments" },
 ];
 
-const FALLBACK_MOVEMENTS: StockMovement[] = [
-  {
-    id: 1,
-    product: { id: 1, sku: "SKU-9021", name: "Industrial Micro-Sensor 24V", basePrice: 145, category: "Sensors", description: "", createdAt: "" },
-    warehouse: { id: 1, name: "Central Hub (ORD-1)", location: "Chicago, IL", createdAt: "" },
-    type: "INBOUND",
-    quantity: 150,
-    referenceNumber: "MOV-99210",
-    performedBy: { id: 1, username: "admin", email: "admin@stockos.io", role: { id: 1, name: "Admin" }, createdAt: "" },
-    notes: "Supplier batch delivery PO-4091 verified",
-    createdAt: new Date(Date.now() - 1000 * 60 * 35).toISOString(),
-  },
-  {
-    id: 2,
-    product: { id: 2, sku: "SKU-1044", name: "Thermal Controller Module", basePrice: 280, category: "Controllers", description: "", createdAt: "" },
-    warehouse: { id: 1, name: "Central Hub (ORD-1)", location: "Chicago, IL", createdAt: "" },
-    type: "OUTBOUND",
-    quantity: 24,
-    referenceNumber: "MOV-99208",
-    performedBy: { id: 1, username: "admin", email: "admin@stockos.io", role: { id: 1, name: "Admin" }, createdAt: "" },
-    notes: "Customer dispatch order SO-8831",
-    createdAt: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
-  },
-  {
-    id: 3,
-    product: { id: 3, sku: "SKU-3180", name: "Linear Actuator 12V 100mm", basePrice: 95, category: "Actuators", description: "", createdAt: "" },
-    warehouse: { id: 2, name: "West Coast Log (SFO-2)", location: "San Francisco, CA", createdAt: "" },
-    type: "TRANSFER",
-    quantity: 40,
-    referenceNumber: "MOV-99195",
-    performedBy: { id: 1, username: "admin", email: "admin@stockos.io", role: { id: 1, name: "Admin" }, createdAt: "" },
-    notes: "Rebalance transfer to East Depository",
-    createdAt: new Date(Date.now() - 1000 * 60 * 300).toISOString(),
-  },
-  {
-    id: 4,
-    product: { id: 4, sku: "SKU-7720", name: "Precision Shielded Cable Loom", basePrice: 42.5, category: "Cables", description: "", createdAt: "" },
-    warehouse: { id: 3, name: "East Depository (JFK-4)", location: "New York, NY", createdAt: "" },
-    type: "ADJUSTMENT",
-    quantity: 12,
-    referenceNumber: "MOV-99182",
-    performedBy: { id: 1, username: "admin", email: "admin@stockos.io", role: { id: 1, name: "Admin" }, createdAt: "" },
-    notes: "Bi-weekly physical cycle count correction",
-    createdAt: new Date(Date.now() - 1000 * 60 * 600).toISOString(),
-  },
-];
+const EMPTY_MOVEMENTS: StockMovement[] = [];
 
 export default function MovementsPage() {
   const [filterType, setFilterType] = React.useState<FilterType>("ALL");
   const [search, setSearch] = React.useState("");
 
-  const { data: movementsData, isLoading, refetch } = useMovements();
+  const { data: movementsData, isLoading, refetch } = useMovements({ page: 0, size: 100 });
+  const latestMovements = movementsData?.data ?? EMPTY_MOVEMENTS;
 
   const movements: StockMovement[] = React.useMemo(() => {
-    const raw = movementsData?.data && movementsData.data.length > 0 ? movementsData.data : FALLBACK_MOVEMENTS;
-    return raw.filter((m) => {
+    return latestMovements.filter((m) => {
       const matchesType = filterType === "ALL" || m.type === filterType;
       const matchesSearch =
-        m.referenceNumber.toLowerCase().includes(search.toLowerCase()) ||
-        m.product?.name.toLowerCase().includes(search.toLowerCase()) ||
-        m.product?.sku.toLowerCase().includes(search.toLowerCase()) ||
-        m.warehouse?.name.toLowerCase().includes(search.toLowerCase());
+        (m.referenceNumber ?? "").toLowerCase().includes(search.toLowerCase()) ||
+        (m.product?.name ?? "").toLowerCase().includes(search.toLowerCase()) ||
+        (m.product?.sku ?? "").toLowerCase().includes(search.toLowerCase()) ||
+        (m.warehouse?.name ?? "").toLowerCase().includes(search.toLowerCase());
       return matchesType && matchesSearch;
     });
-  }, [movementsData, filterType, search]);
+  }, [latestMovements, filterType, search]);
 
   const stats = React.useMemo(() => {
     let inflow = 0;
     let outflow = 0;
     let transfers = 0;
 
-    for (const m of movements) {
+    for (const m of latestMovements) {
       if (m.type === "INBOUND") inflow += m.quantity;
       else if (m.type === "OUTBOUND") outflow += m.quantity;
       else if (m.type === "TRANSFER") transfers += m.quantity;
     }
 
     return { inflow, outflow, transfers, net: inflow - outflow };
-  }, [movements]);
+  }, [latestMovements]);
 
   return (
     <div className="space-y-6">
@@ -122,23 +77,23 @@ export default function MovementsPage() {
       {/* Movement Metrics Summary */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <div className="rounded-lg border border-border/50 bg-card/60 p-3.5">
-          <span className="text-xs text-muted-foreground">Inbound Inflow</span>
+          <span className="text-xs text-muted-foreground">Inbound quantity</span>
           <p className="mt-1 text-xl font-bold font-mono text-emerald-400">
             +<LiveFigure value={stats.inflow} /> units
           </p>
-          <span className="text-[10px] font-mono text-muted-foreground/60">Supplier deliveries</span>
+          <span className="text-[10px] font-mono text-muted-foreground/60">Latest 100 ledger entries · units</span>
         </div>
 
         <div className="rounded-lg border border-border/50 bg-card/60 p-3.5">
-          <span className="text-xs text-muted-foreground">Outbound Dispatch</span>
+          <span className="text-xs text-muted-foreground">Outbound quantity</span>
           <p className="mt-1 text-xl font-bold font-mono text-rose-400">
             -<LiveFigure value={stats.outflow} /> units
           </p>
-          <span className="text-[10px] font-mono text-muted-foreground/60">Customer orders</span>
+          <span className="text-[10px] font-mono text-muted-foreground/60">Latest 100 ledger entries · units</span>
         </div>
 
         <div className="rounded-lg border border-border/50 bg-card/60 p-3.5">
-          <span className="text-xs text-muted-foreground">Net Stock Delta</span>
+          <span className="text-xs text-muted-foreground">Inbound − outbound</span>
           <p
             className={`mt-1 text-xl font-bold font-mono ${
               stats.net >= 0 ? "text-emerald-400" : "text-rose-400"
@@ -147,15 +102,15 @@ export default function MovementsPage() {
             {stats.net >= 0 ? "+" : ""}
             <LiveFigure value={stats.net} /> units
           </p>
-          <span className="text-[10px] font-mono text-muted-foreground/60">Net position change</span>
+          <span className="text-[10px] font-mono text-muted-foreground/60">Latest 100 entries · excludes transfers</span>
         </div>
 
         <div className="rounded-lg border border-border/50 bg-card/60 p-3.5">
-          <span className="text-xs text-muted-foreground">Transfers Rebalanced</span>
+          <span className="text-xs text-muted-foreground">Transferred quantity</span>
           <p className="mt-1 text-xl font-bold font-mono text-foreground">
             <LiveFigure value={stats.transfers} /> units
           </p>
-          <span className="text-[10px] font-mono text-muted-foreground/60">Inter-facility volume</span>
+          <span className="text-[10px] font-mono text-muted-foreground/60">Latest 100 ledger entries · units</span>
         </div>
       </div>
 
@@ -179,7 +134,7 @@ export default function MovementsPage() {
           </div>
 
           <span className="font-mono text-xs text-muted-foreground">
-            {movements.length} audit entries
+            {isLoading ? "Loading ledger…" : `${movements.length} shown from latest ${latestMovements.length} · ${movementsData?.totalElements ?? latestMovements.length} total`}
           </span>
         </div>
 
@@ -265,7 +220,10 @@ export default function MovementsPage() {
                     </td>
 
                     <td className="px-3 py-2.5 text-muted-foreground font-mono text-[11px]">
-                      {m.warehouse?.name}
+                      <div>{m.warehouse?.name}</div>
+                      {m.type === "TRANSFER" && m.destinationWarehouse?.name && (
+                        <div className="mt-0.5 text-blue-400">→ {m.destinationWarehouse.name}</div>
+                      )}
                     </td>
 
                     <td className="px-3 py-2.5 text-muted-foreground">

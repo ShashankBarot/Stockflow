@@ -24,6 +24,7 @@ export function SegmentedControl<T extends string = string>({
   size = "default",
 }: SegmentedControlProps<T>) {
   const isSm = size === "sm";
+  const indicatorId = React.useId();
 
   return (
     <div
@@ -40,7 +41,9 @@ export function SegmentedControl<T extends string = string>({
             aria-selected={isSelected}
             onClick={() => onChange(opt.value)}
             className={`relative z-10 font-medium transition-colors ${
-              isSm ? "px-2 py-0.5 text-[11px]" : "px-3 py-1 text-xs"
+              isSm
+                ? "min-h-9 px-2.5 py-2 text-[11px] sm:min-h-0 sm:px-2 sm:py-0.5"
+                : "min-h-9 px-3 py-1 text-xs"
             } ${
               isSelected
                 ? "text-background font-semibold"
@@ -50,8 +53,8 @@ export function SegmentedControl<T extends string = string>({
             {opt.label}
             {isSelected && (
               <motion.div
-                layoutId="segmented-thumb"
-                className="absolute inset-0 -z-10 rounded bg-foreground shadow-sm"
+                layoutId={`segmented-thumb-${indicatorId}`}
+                className="absolute inset-0 -z-10 rounded bg-foreground"
                 transition={{ type: "spring", stiffness: 450, damping: 35 }}
               />
             )}

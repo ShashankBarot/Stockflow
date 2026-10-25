@@ -26,4 +26,7 @@ public class RegisterRequest {
     @Size(min = 6, max = 100)
     private String password;
 
+    @jakarta.validation.constraints.Pattern(regexp = "(?i)MANAGER|STAFF", message = "Role must be MANAGER or STAFF")
+    private String role;
+
 }

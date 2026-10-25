@@ -13,6 +13,7 @@ import {
   Settings,
   ShieldCheck,
   Package,
+  X,
 } from "lucide-react";
 
 export interface NavItemConfig {
@@ -66,6 +67,7 @@ export const DEFAULT_NAV_SECTIONS: NavSectionConfig[] = [
         label: "Settings",
         href: "/settings",
         icon: <Settings className="h-4 w-4" />,
+        roles: ["ADMIN"],
       },
     ],
   },
@@ -73,9 +75,10 @@ export const DEFAULT_NAV_SECTIONS: NavSectionConfig[] = [
 
 interface NavItemProps {
   item: NavItemConfig;
+  onNavigate?: () => void;
 }
 
-function NavItem({ item }: NavItemProps) {
+function NavItem({ item, onNavigate }: NavItemProps) {
   const pathname = usePathname();
   const { user } = useAuth();
   const role = typeof user?.role === "string" ? user.role : user?.role.name;
@@ -89,6 +92,7 @@ function NavItem({ item }: NavItemProps) {
     <li>
       <Link
         href={item.href}
+        onClick={onNavigate}
         className={`group flex items-center gap-2.5 rounded-full px-2.5 py-2 text-[13px] font-medium transition-colors duration-150 ${
           isActive
             ? "bg-foreground/[0.09] text-foreground"
@@ -125,6 +129,7 @@ export interface AppSidebarProps {
   header?: React.ReactNode;
   footer?: React.ReactNode;
   className?: string;
+  onClose?: () => void;
 }
 
 export function AppSidebar({
@@ -132,10 +137,11 @@ export function AppSidebar({
   header,
   footer,
   className = "",
+  onClose,
 }: AppSidebarProps) {
   return (
     <aside
-      className={`sticky top-0 flex h-[100dvh] w-[196px] shrink-0 flex-col border-r border-white/[0.055] bg-background ${className}`}
+      className={`flex h-[100dvh] shrink-0 flex-col border-r border-white/[0.055] bg-background ${className}`}
       aria-label="Application navigation"
     >
       {/* Brand Header */}
@@ -152,6 +158,16 @@ export function AppSidebar({
             </div>
           </div>
         )}
+        {onClose && (
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close navigation"
+            className="ml-auto rounded-md p-2 text-muted-foreground hover:bg-foreground/[0.06] hover:text-foreground md:hidden"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
       </div>
 
       {/* Navigation Sections */}
@@ -165,7 +181,7 @@ export function AppSidebar({
             )}
             <ul className="space-y-0.5">
               {section.items.map((item) => (
-                <NavItem key={item.href} item={item} />
+                <NavItem key={item.href} item={item} onNavigate={onClose} />
               ))}
             </ul>
           </div>

@@ -46,7 +46,7 @@ export function DateRangePicker({
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="inline-flex items-center gap-1.5 rounded-md border border-border/50 bg-foreground/[0.04] px-2.5 py-1 text-xs font-medium text-foreground transition-colors hover:bg-foreground/[0.08]"
+        className="inline-flex min-h-9 items-center gap-1.5 rounded-md border border-border/50 bg-foreground/[0.04] px-2.5 py-1 text-xs font-medium text-foreground transition-colors hover:bg-foreground/[0.08] sm:min-h-8"
       >
         <CalendarIcon className="h-3.5 w-3.5 text-muted-foreground" />
         <span>{currentLabel}</span>
@@ -63,7 +63,7 @@ export function DateRangePicker({
                 onChange(p.value);
                 setOpen(false);
               }}
-              className={`rounded px-2.5 py-1.5 text-xs text-left transition-colors ${
+              className={`min-h-9 rounded px-2.5 py-1.5 text-xs text-left transition-colors sm:min-h-8 ${
                 p.value === value
                   ? "bg-foreground text-background font-semibold"
                   : "text-foreground hover:bg-foreground/[0.08]"

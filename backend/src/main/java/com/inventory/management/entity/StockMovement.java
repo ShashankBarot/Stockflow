@@ -26,6 +26,10 @@ public class StockMovement {
     @JoinColumn(name = "warehouse_id", nullable = false)
     private Warehouse warehouse;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "destination_warehouse_id")
+    private Warehouse destinationWarehouse;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private MovementType type;

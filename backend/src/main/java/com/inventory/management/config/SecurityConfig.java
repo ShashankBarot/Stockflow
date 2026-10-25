@@ -39,6 +39,7 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .exceptionHandling(errors -> errors.authenticationEntryPoint(authenticationEntryPoint).accessDeniedHandler(accessDeniedHandler))
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/health").permitAll()
                 .requestMatchers("/auth/login", "/auth/refresh").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.POST, "/auth/register").hasRole("ADMIN")
                 .requestMatchers("/auth/logout", "/auth/me").authenticated()

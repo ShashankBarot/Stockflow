@@ -29,7 +29,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
     private final PurchaseOrderRepository purchaseOrders;
     private final SupplierRepository suppliers;
     private final ProductRepository products;
-    private final InventoryService inventoryService;
+    private final StockMovementService stockMovementService;
 
     @Override
     @Transactional(readOnly = true)
@@ -93,7 +93,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
             movementRequest.setReferenceNumber(order.getReferenceNumber() != null ? order.getReferenceNumber() : "PO-" + order.getId());
             movementRequest.setNotes("Received from Purchase Order " + order.getId());
 
-            inventoryService.createMovement(movementRequest, userId);
+            stockMovementService.createMovement(movementRequest, userId);
         }
 
         order.setStatus(PurchaseOrder.OrderStatus.RECEIVED);

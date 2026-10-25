@@ -13,9 +13,17 @@ public interface MovementRepository extends JpaRepository<StockMovement, Long> {
 
     Page<StockMovement> findByType(MovementType type, Pageable pageable);
 
+    Page<StockMovement> findByTypeOrderByCreatedAtDescIdDesc(MovementType type, Pageable pageable);
+
     Page<StockMovement> findByProductId(Long productId, Pageable pageable);
 
+    Page<StockMovement> findByProductIdOrderByCreatedAtDescIdDesc(Long productId, Pageable pageable);
+
     Page<StockMovement> findByWarehouseId(Long warehouseId, Pageable pageable);
+
+    Page<StockMovement> findByWarehouseIdOrderByCreatedAtDescIdDesc(Long warehouseId, Pageable pageable);
+
+    Page<StockMovement> findAllByOrderByCreatedAtDescIdDesc(Pageable pageable);
 
     Page<StockMovement> findByCreatedAtBetween(LocalDateTime start, LocalDateTime end, Pageable pageable);
 }

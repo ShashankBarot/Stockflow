@@ -29,7 +29,7 @@ public class SaleOrderServiceImpl implements SaleOrderService {
     private final SaleOrderRepository saleOrders;
     private final CustomerRepository customers;
     private final ProductRepository products;
-    private final InventoryService inventoryService;
+    private final StockMovementService stockMovementService;
 
     @Override
     @Transactional(readOnly = true)
@@ -93,7 +93,7 @@ public class SaleOrderServiceImpl implements SaleOrderService {
             movementRequest.setReferenceNumber(order.getReferenceNumber() != null ? order.getReferenceNumber() : "SO-" + order.getId());
             movementRequest.setNotes("Dispatched for Sale Order " + order.getId());
 
-            inventoryService.createMovement(movementRequest, userId);
+            stockMovementService.createMovement(movementRequest, userId);
         }
 
         order.setStatus(SaleOrder.OrderStatus.DISPATCHED);

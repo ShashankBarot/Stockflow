@@ -43,11 +43,29 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     @Transactional
-    public ApiResponse<?> markAsRead(Long notificationId) {
+    public ApiResponse<?> getUnreadCount(Long userId) {
+        return ApiResponse.ok(java.util.Map.of("count", notificationRepository.countByUserIdAndIsReadFalse(userId)));
+    }
+
+    @Override
+    @Transactional
+    public ApiResponse<?> markAsRead(Long notificationId, Long userId) {
         Notification notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Notification not found"));
+        if (!userId.equals(notification.getUserId())) {
+            throw new ResourceNotFoundException("Notification not found");
+        }
         notification.setRead(true);
         notificationRepository.save(notification);
         return ApiResponse.ok("Notification marked as read", NotificationResponse.from(notification));
+    }
+
+    @Override
+    @Transactional
+    public ApiResponse<?> markAllAsRead(Long userId) {
+        notificationRepository.findByUserIdAndIsReadFalse(userId, Pageable.unpaged())
+                .forEach(notification -> notification.setRead(true));
+        notificationRepository.flush();
+        return ApiResponse.ok("Notifications marked as read", null);
     }
 }

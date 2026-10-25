@@ -1,9 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { X, ArrowRight, CheckCircle2, AlertCircle } from "lucide-react";
+import { X, ArrowRight, AlertCircle } from "lucide-react";
 import { SegmentedControl, SegmentOption } from "@/components/ui/segmented-control";
-import { BUTTON, BUTTON_PRIMARY, FIELD } from "@/components/ui/control-classes";
+import { BUTTON_PRIMARY, FIELD } from "@/components/ui/control-classes";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useWarehouses } from "@/hooks/useWarehouses";
 import { useCreateMovement } from "@/hooks/useMovements";
 import type { Product, MovementType } from "@/types";
@@ -29,10 +30,10 @@ export function AdjustStockDrawer({
   onSuccess,
 }: AdjustStockDrawerProps) {
   const [movementType, setMovementType] = React.useState<MovementType>("INBOUND");
-  const [quantity, setQuantity] = React.useState<number>(10);
+  const [quantity, setQuantity] = React.useState("10");
   const [warehouseId, setWarehouseId] = React.useState<number | "">("");
   const [destWarehouseId, setDestWarehouseId] = React.useState<number | "">("");
-  const [reference, setReference] = React.useState("");
+  const [reference, setReference] = React.useState(() => `MOV-${Date.now().toString().slice(-6)}`);
   const [notes, setNotes] = React.useState("");
   const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
 
@@ -41,20 +42,9 @@ export function AdjustStockDrawer({
 
   const createMovement = useCreateMovement();
 
-  React.useEffect(() => {
-    if (warehouses.length > 0 && !warehouseId) {
-      setWarehouseId(warehouses[0].id);
-    }
-  }, [warehouses, warehouseId]);
-
-  React.useEffect(() => {
-    if (isOpen) {
-      setReference(`MOV-${Date.now().toString().slice(-6)}`);
-      setErrorMsg(null);
-    }
-  }, [isOpen]);
-
   if (!isOpen || !product) return null;
+
+  const activeWarehouseId = warehouseId || warehouses[0]?.id || "";
 
   const currentStock = (product as unknown as { currentStock?: number; quantity?: number }).currentStock ?? (product as unknown as { quantity?: number }).quantity ?? 45;
   const qtyNum = Number(quantity) || 0;
@@ -66,7 +56,7 @@ export function AdjustStockDrawer({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!warehouseId) {
+    if (!activeWarehouseId) {
       setErrorMsg("Please select an origin warehouse.");
       return;
     }
@@ -82,7 +72,7 @@ export function AdjustStockDrawer({
     try {
       await createMovement.mutateAsync({
         productId: product.id,
-        warehouseId: Number(warehouseId),
+        warehouseId: Number(activeWarehouseId),
         type: movementType,
         quantity: qtyNum,
         referenceNumber: reference,
@@ -125,7 +115,7 @@ export function AdjustStockDrawer({
           <div className="font-medium text-foreground">{product.name}</div>
           <div className="mt-2 flex items-center justify-between text-[11px] font-mono text-muted-foreground">
             <span>Current Stock: <strong className="text-foreground">{currentStock}</strong></span>
-            <span>Category: {product.category || "General"}</span>
+            <span>Category: {product.category || "—"}</span>
           </div>
         </div>
 
@@ -149,17 +139,18 @@ export function AdjustStockDrawer({
             <label className="mb-1.5 block text-xs font-medium text-foreground/80">
               Origin Facility
             </label>
-            <select
-              value={warehouseId}
-              onChange={(e) => setWarehouseId(Number(e.target.value))}
-              className={`${FIELD} w-full`}
-            >
-              {warehouses.map((wh) => (
-                <option key={wh.id} value={wh.id}>
-                  {wh.name} ({wh.location})
-                </option>
-              ))}
-            </select>
+            <Select value={activeWarehouseId ? String(activeWarehouseId) : ""} onValueChange={(value) => setWarehouseId(Number(value))}>
+              <SelectTrigger className={`${FIELD} w-full`} aria-label="Origin facility">
+                <SelectValue placeholder="Select origin warehouse" />
+              </SelectTrigger>
+              <SelectContent className="max-h-72 border-white/10 bg-[#101214] text-[#e8eaed]">
+                {warehouses.map((wh) => (
+                  <SelectItem key={wh.id} value={String(wh.id)} className="focus:bg-white/[0.08] focus:text-white">
+                    {wh.name} ({wh.location})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Destination for Transfer */}
@@ -168,20 +159,18 @@ export function AdjustStockDrawer({
               <label className="mb-1.5 block text-xs font-medium text-foreground/80">
                 Destination Facility
               </label>
-              <select
-                value={destWarehouseId}
-                onChange={(e) => setDestWarehouseId(Number(e.target.value))}
-                className={`${FIELD} w-full`}
-              >
-                <option value="">Select target warehouse...</option>
-                {warehouses
-                  .filter((w) => w.id !== warehouseId)
-                  .map((wh) => (
-                    <option key={wh.id} value={wh.id}>
+              <Select value={destWarehouseId ? String(destWarehouseId) : ""} onValueChange={(value) => setDestWarehouseId(Number(value))}>
+                <SelectTrigger className={`${FIELD} w-full`} aria-label="Destination facility">
+                  <SelectValue placeholder="Select target warehouse" />
+                </SelectTrigger>
+                <SelectContent className="max-h-72 border-white/10 bg-[#101214] text-[#e8eaed]">
+                  {warehouses.filter((w) => w.id !== activeWarehouseId).map((wh) => (
+                    <SelectItem key={wh.id} value={String(wh.id)} className="focus:bg-white/[0.08] focus:text-white">
                       {wh.name} ({wh.location})
-                    </option>
+                    </SelectItem>
                   ))}
-              </select>
+                </SelectContent>
+              </Select>
             </div>
           )}
 
@@ -194,7 +183,11 @@ export function AdjustStockDrawer({
               type="number"
               min="1"
               value={quantity}
-              onChange={(e) => setQuantity(Math.max(0, parseInt(e.target.value) || 0))}
+              onChange={(e) => {
+                const digits = e.target.value.replace(/\D/g, "");
+                setQuantity(digits === "" ? "" : digits.replace(/^0+(?=\d)/, ""));
+              }}
+              onBlur={() => setQuantity(quantity === "" ? "0" : String(Number(quantity)))}
               className={`${FIELD} w-full font-mono text-sm`}
             />
           </div>

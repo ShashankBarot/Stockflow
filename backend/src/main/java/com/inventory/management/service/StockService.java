@@ -9,5 +9,6 @@ public interface StockService {
     StockMovement deductStock(Long productId, Long warehouseId, Integer quantity, String referenceNumber, Long performedByUserId, String notes);
 
     StockMovement adjustStock(Long productId, Long warehouseId, Integer newQuantity, String referenceNumber, Long performedByUserId, String notes);
-}
 
+    StockMovement transferStock(Long productId, Long sourceWarehouseId, Long destinationWarehouseId, Integer quantity, String referenceNumber, Long performedByUserId, String notes);
+}

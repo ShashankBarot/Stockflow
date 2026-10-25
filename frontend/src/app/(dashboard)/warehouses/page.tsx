@@ -1,18 +1,12 @@
 "use client";
 
 import * as React from "react";
-import { Plus, Warehouse, MapPin, Boxes, Server, X, AlertCircle } from "lucide-react";
+import { Plus, Warehouse, MapPin, X, AlertCircle } from "lucide-react";
 import { BUTTON, BUTTON_PRIMARY, FIELD } from "@/components/ui/control-classes";
-import { LiveFigure } from "@/components/ui/live-figure";
 import { useWarehouses, useCreateWarehouse } from "@/hooks/useWarehouses";
 import { useInventory } from "@/hooks/useInventory";
 import type { Warehouse as WarehouseType } from "@/types";
-
-const FALLBACK_WAREHOUSES: WarehouseType[] = [
-  { id: 1, name: "Central Logistics Hub (ORD-1)", location: "Chicago, IL", createdAt: new Date().toISOString() },
-  { id: 2, name: "West Coast Depository (SFO-2)", location: "San Francisco, CA", createdAt: new Date().toISOString() },
-  { id: 3, name: "East Coast Terminal (JFK-4)", location: "New York, NY", createdAt: new Date().toISOString() },
-];
+import { useAuth } from "@/hooks/useAuth";
 
 export default function WarehousesPage() {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
@@ -20,23 +14,28 @@ export default function WarehousesPage() {
   const [location, setLocation] = React.useState("");
   const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
 
-  const { data: whData, isLoading, refetch } = useWarehouses();
-  const { data: inventoryData } = useInventory();
+  const { data: whData, isLoading, isError: isWarehouseError, refetch } = useWarehouses();
+  const { data: inventoryData, isLoading: isInventoryLoading, isError: isInventoryError } = useInventory({ page: 0, size: 500 });
   const createWh = useCreateWarehouse();
+  const { user } = useAuth();
+  const role = typeof user?.role === "string" ? user.role : user?.role.name;
+  const canManageFacilities = role === "ADMIN" || role === "MANAGER";
 
-  const warehouses: WarehouseType[] = whData?.data && whData.data.length > 0 ? whData.data : FALLBACK_WAREHOUSES;
+  const warehouses: WarehouseType[] = whData?.data ?? [];
 
   // Compute facility metrics
   const facilityStats = React.useMemo(() => {
-    const map = new Map<number, { totalQty: number; skuCount: number }>();
+    const map = new Map<number, { totalQty: number; skuIds: Set<number>; capacity: number }>();
     if (inventoryData?.data) {
       for (const item of inventoryData.data) {
         const whId = item.warehouse?.id;
         if (whId) {
-          const prev = map.get(whId) || { totalQty: 0, skuCount: 0 };
+          const prev = map.get(whId) || { totalQty: 0, skuIds: new Set<number>(), capacity: 0 };
+          if (item.product?.id) prev.skuIds.add(item.product.id);
           map.set(whId, {
             totalQty: prev.totalQty + item.quantity,
-            skuCount: prev.skuCount + 1,
+            skuIds: prev.skuIds,
+            capacity: prev.capacity + (item.maxCapacity ?? 0),
           });
         }
       }
@@ -75,25 +74,29 @@ export default function WarehousesPage() {
           </p>
         </div>
 
-        <button
+        {canManageFacilities && <button
           type="button"
           onClick={() => setIsModalOpen(true)}
           className={BUTTON_PRIMARY}
         >
           <Plus className="h-3.5 w-3.5" />
           <span>Add Facility</span>
-        </button>
+        </button>}
       </div>
 
       {/* Facilities Grid */}
+      {isLoading ? (
+        <div className="rounded-lg border border-border/50 bg-card/60 px-4 py-12 text-center text-sm text-muted-foreground">Loading registered facilities…</div>
+      ) : isWarehouseError ? (
+        <div role="alert" className="rounded-lg border border-rose-500/30 bg-rose-500/[0.06] px-4 py-8 text-center text-sm text-rose-300">Could not load facilities from StockFlow. Check the backend connection and try again.</div>
+      ) : warehouses.length === 0 ? (
+        <div className="rounded-lg border border-border/50 bg-card/60 px-4 py-12 text-center"><p className="text-sm font-medium text-foreground">No facilities registered</p><p className="mt-1 text-xs text-muted-foreground">{canManageFacilities ? "Add a facility to start tracking stock by location." : "Ask an administrator or manager to add a facility."}</p></div>
+      ) : (
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {warehouses.map((wh, idx) => {
-          const stats = facilityStats.get(wh.id) || {
-            totalQty: idx === 0 ? 3200 : idx === 1 ? 1420 : 890,
-            skuCount: idx === 0 ? 48 : idx === 1 ? 26 : 14,
-          };
-          const capacity = idx === 0 ? 5000 : idx === 1 ? 2500 : 1500;
-          const usagePercent = Math.min(100, Math.round((stats.totalQty / capacity) * 100));
+        {warehouses.map((wh) => {
+          const stats = facilityStats.get(wh.id) || { totalQty: 0, skuIds: new Set<number>(), capacity: 0 };
+          const hasCapacity = stats.capacity > 0 && !isInventoryLoading && !isInventoryError;
+          const usagePercent = hasCapacity ? Math.min(100, Math.round((stats.totalQty / stats.capacity) * 100)) : 0;
 
           return (
             <div
@@ -114,47 +117,34 @@ export default function WarehousesPage() {
                       </div>
                     </div>
                   </div>
-                  <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-mono text-emerald-400 border border-emerald-500/20">
-                    ACTIVE
-                  </span>
                 </div>
 
                 {/* Utilization Gauge */}
                 <div className="mt-4 space-y-1.5">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground text-[11px]">Storage Allocation</span>
-                    <span className="font-mono font-medium text-foreground">{usagePercent}%</span>
+                    <span className="text-muted-foreground text-[11px]">{hasCapacity ? "Storage Allocation" : "Stock on hand"}</span>
+                    {hasCapacity && <span className="font-mono font-medium text-foreground">{usagePercent}%</span>}
                   </div>
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-foreground/[0.05]">
-                    <div
-                      className={`h-full rounded-full transition-all ${
-                        usagePercent > 85 ? "bg-rose-500" : usagePercent > 70 ? "bg-amber-500" : "bg-foreground"
-                      }`}
-                      style={{ width: `${usagePercent}%` }}
-                    />
-                  </div>
+                  {hasCapacity && <div className="h-2 w-full overflow-hidden rounded-full bg-foreground/[0.05]"><div className={`h-full rounded-full transition-all ${usagePercent > 85 ? "bg-rose-500" : usagePercent > 70 ? "bg-amber-500" : "bg-foreground"}`} style={{ width: `${usagePercent}%` }} /></div>}
                   <div className="flex justify-between text-[10px] font-mono text-muted-foreground/60">
-                    <span><LiveFigure value={stats.totalQty} /> on hand</span>
-                    <span>Max <LiveFigure value={capacity} /></span>
+                    <span>{isInventoryLoading ? "Loading stock…" : isInventoryError ? "Inventory unavailable" : `${stats.totalQty.toLocaleString()} units`}</span>
+                    <span>{isInventoryLoading || isInventoryError ? "" : hasCapacity ? `Capacity ${stats.capacity.toLocaleString()}` : "Capacity not set"}</span>
                   </div>
                 </div>
               </div>
 
               {/* Facility Metadata Strip */}
-              <div className="mt-5 grid grid-cols-2 gap-2 border-t border-border/40 pt-3 text-[11px] font-mono">
+              <div className="mt-5 grid grid-cols-1 gap-2 border-t border-border/40 pt-3 text-[11px] font-mono">
                 <div>
-                  <span className="text-muted-foreground/70 text-[10px]">ACTIVE SKUS</span>
-                  <p className="font-semibold text-foreground">{stats.skuCount}</p>
-                </div>
-                <div>
-                  <span className="text-muted-foreground/70 text-[10px]">SYNC STATUS</span>
-                  <p className="font-semibold text-emerald-400">100% Synced</p>
+                  <span className="text-muted-foreground/70 text-[10px]">PRODUCT SKUS</span>
+                  <p className="font-semibold text-foreground">{isInventoryLoading || isInventoryError ? "—" : stats.skuIds.size}</p>
                 </div>
               </div>
             </div>
           );
         })}
       </div>
+      )}
 
       {/* Facility Registration Modal */}
       {isModalOpen && (

@@ -28,7 +28,7 @@ public class TransferOrderServiceImpl implements TransferOrderService {
     private final TransferOrderRepository transferOrders;
     private final WarehouseRepository warehouses;
     private final ProductRepository products;
-    private final InventoryService inventoryService;
+    private final StockMovementService stockMovementService;
 
     @Override
     @Transactional(readOnly = true)
@@ -87,7 +87,7 @@ public class TransferOrderServiceImpl implements TransferOrderService {
             movementRequest.setReferenceNumber(savedOrder.getReferenceNumber() != null ? savedOrder.getReferenceNumber() : "TR-" + savedOrder.getId());
             movementRequest.setNotes("Transfer Order " + savedOrder.getId());
 
-            inventoryService.createMovement(movementRequest, userId);
+            stockMovementService.createMovement(movementRequest, userId);
         }
 
         savedOrder.setStatus(TransferOrder.TransferStatus.COMPLETED);

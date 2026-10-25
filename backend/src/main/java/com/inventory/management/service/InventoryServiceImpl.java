@@ -4,8 +4,10 @@ import com.inventory.management.dto.request.InventoryThresholdRequest;
 import com.inventory.management.dto.response.ApiResponse;
 import com.inventory.management.dto.response.InventoryResponse;
 import com.inventory.management.entity.Inventory;
+import com.inventory.management.entity.Notification.NotificationType;
 import com.inventory.management.exception.ResourceNotFoundException;
 import com.inventory.management.repository.InventoryRepository;
+import com.inventory.management.repository.UserRepository;
 import com.inventory.management.repository.WarehouseRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -22,6 +24,8 @@ public class InventoryServiceImpl implements InventoryService {
 
     private final InventoryRepository inventoryRepository;
     private final WarehouseRepository warehouseRepository;
+    private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional(readOnly = true)
@@ -84,6 +88,8 @@ public class InventoryServiceImpl implements InventoryService {
         Inventory inventory = inventoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Inventory not found with id: " + id));
 
+        int oldThreshold = inventory.getMinThreshold() != null ? inventory.getMinThreshold() : 0;
+        int quantity = inventory.getQuantity() != null ? inventory.getQuantity() : 0;
         inventory.setMinThreshold(request.getMinThreshold());
         if (request.getMaxCapacity() != null) {
             inventory.setMaxCapacity(request.getMaxCapacity());
@@ -91,6 +97,14 @@ public class InventoryServiceImpl implements InventoryService {
 
         // NOTE: ONLY minThreshold and maxCapacity are modified. quantity is NOT modified.
         Inventory updated = inventoryRepository.save(inventory);
+        if (quantity > oldThreshold && quantity <= request.getMinThreshold()) {
+            String title = "Low stock: " + inventory.getProduct().getName();
+            String message = inventory.getProduct().getName() + " (" + inventory.getProduct().getSku()
+                    + ") at " + inventory.getWarehouse().getName() + " has " + quantity
+                    + " units remaining. Minimum threshold: " + request.getMinThreshold() + ".";
+            userRepository.findAll().forEach(user -> notificationService.createNotification(
+                    title, message, NotificationType.LOW_STOCK, user.getId()));
+        }
 
         return ApiResponse.ok("Inventory threshold updated", InventoryResponse.from(updated));
     }

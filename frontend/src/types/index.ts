@@ -22,6 +22,16 @@ export interface RegisterRequest {
   username: string;
   email: string;
   password: string;
+  role?: "MANAGER" | "STAFF";
+}
+
+export interface NotificationItem {
+  id: number;
+  title: string;
+  message: string;
+  type: "LOW_STOCK" | "ORDER_STATUS" | "SYSTEM_ALERT";
+  isRead: boolean;
+  createdAt: string;
 }
 
 export interface ApiEnvelope<T> {
@@ -42,7 +52,10 @@ export interface Product {
   sku: string;
   name: string;
   description: string;
-  category: string;
+  category?: string;
+  categoryId?: number;
+  brand?: string;
+  brandId?: number;
   basePrice: number;
   createdAt: string;
 }
@@ -51,8 +64,15 @@ export interface CreateProductRequest {
   sku: string;
   name: string;
   description: string;
-  category: string;
+  categoryId: number;
+  brandId: number;
   basePrice: number;
+}
+
+export interface CatalogOption {
+  id: number;
+  name: string;
+  description?: string;
 }
 
 // ===================== Warehouse Types =====================
@@ -75,7 +95,7 @@ export interface Inventory {
   warehouse: Warehouse;
   quantity: number;
   minThreshold: number;
-  maxCapacity: number;
+  maxCapacity: number | null;
   updatedAt: string;
 }
 
@@ -91,6 +111,7 @@ export interface StockMovement {
   id: number;
   product: Product;
   warehouse: Warehouse;
+  destinationWarehouse?: Warehouse | null;
   type: MovementType;
   quantity: number;
   referenceNumber: string;

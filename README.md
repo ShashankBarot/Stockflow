@@ -1,6 +1,6 @@
 # Stockflow - Stock Movement & Inventory Management System
 
-A production-ready full-stack inventory management system built with **Next.js**, **Spring Boot**, and **MySQL**. Track stock, warehouses, purchases, sales, transfers, and inventory analytics with a modern data-driven interface.
+A full-stack inventory management system built with **Next.js**, **Spring Boot**, and **MySQL**. See [DEPLOYMENT.md](DEPLOYMENT.md) for production deployment and verification steps.
 
 ## Tech Stack
 
@@ -31,15 +31,15 @@ stock-management-system/
 - Maven 3.9+
 - Docker & Docker Compose (optional, for containerized deployment)
 
-### 1. Clone and Configure
+### 1. Configure
 ```bash
 cp .env.example .env
-# Edit .env with your values
+# Replace every placeholder with unique secrets. See DEPLOYMENT.md.
 ```
 
 ### 2. Start with Docker Compose (Recommended)
 ```bash
-docker-compose up -d
+docker compose up --build -d
 ```
 
 ### 3. Start Manually
@@ -61,7 +61,7 @@ npm run dev
 ### 4. Access
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:8080/api/v1
-- Swagger UI: http://localhost:8080/api/v1/swagger-ui.html
+- Health check: http://localhost:8080/api/v1/health
 
 ## Authentication Setup
 
@@ -87,5 +87,6 @@ Product, warehouse, and inventory threshold writes require ADMIN or MANAGER. Sto
 | Phase 2 | Stock Movements (Inbound/Outbound/Transfer), Audit Trail |
 | Phase 3 | Analytics Dashboard, Alerts, Reports, Barcode Scanning |
 
-## API Documentation
-The API is documented via Swagger/OpenAPI. Access it at `/api/v1/swagger-ui.html` when the backend is running.
+## Deployment and verification
+
+Follow [DEPLOYMENT.md](DEPLOYMENT.md) before deploying. Production disables Swagger and requires configured secrets and a first administrator on an empty database.
