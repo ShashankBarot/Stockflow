@@ -37,7 +37,7 @@ spring:
     timeout-per-shutdown-phase: 20s
 
 server:
-  port: ${SERVER_PORT:8080}
+  port: ${PORT:${SERVER_PORT:8080}}
   shutdown: graceful
   servlet:
     context-path: /api/v1
