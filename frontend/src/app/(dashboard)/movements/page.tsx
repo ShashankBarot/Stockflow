@@ -55,14 +55,14 @@ export default function MovementsPage() {
   }, [latestMovements]);
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 max-w-full space-y-6 overflow-x-hidden">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-border/40 pb-4">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-foreground md:text-2xl">
             Stock Movements Ledger
           </h1>
-          <p className="mt-1 text-xs text-muted-foreground">
+          <p className="mt-1 max-w-3xl text-xs leading-relaxed text-muted-foreground">
             Immutable audit record of all physical item inflows, dispatches, transfers, and inventory reconciliations.
           </p>
         </div>
@@ -117,21 +117,25 @@ export default function MovementsPage() {
 
       {/* Dense Movement Table */}
       <div className="flex flex-col rounded-lg border border-border/50 bg-card/60 backdrop-blur-xs">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/40 p-4">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-3 border-b border-border/40 p-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:p-4">
+          <div className="flex min-w-0 max-w-full items-center gap-2">
             <input
               type="text"
               placeholder="Search reference, SKU, site..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className={`${FIELD} w-48 lg:w-64`}
+              className={`${FIELD} w-[min(12rem,42vw)] shrink-0 sm:w-48 lg:w-64`}
             />
-            <SegmentedControl
-              options={FILTER_OPTIONS}
-              value={filterType}
-              onChange={setFilterType}
-              size="sm"
-            />
+            <div className="min-w-0 max-w-full overflow-x-auto overscroll-contain">
+              <div className="w-max">
+                <SegmentedControl
+                  options={FILTER_OPTIONS}
+                  value={filterType}
+                  onChange={setFilterType}
+                  size="sm"
+                />
+              </div>
+            </div>
           </div>
 
           <span className="font-mono text-xs text-muted-foreground">
@@ -139,8 +143,8 @@ export default function MovementsPage() {
           </span>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
+        <div className="max-w-full overflow-x-auto overscroll-contain">
+          <table className="w-full min-w-[900px] border-collapse text-left text-xs">
             <thead>
               <tr className="border-b border-border/40 bg-foreground/[0.02] text-muted-foreground">
                 <th className="py-2.5 pl-4 pr-3 font-medium">REFERENCE</th>
